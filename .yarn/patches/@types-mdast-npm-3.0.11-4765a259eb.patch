@@ -1,0 +1,47 @@
+diff --git a/index.d.ts b/index.d.ts
+index da85eccf75c9e547bc0208da49c12386f5e00a5d..d2bc9277fb64d9e3c8dfc9f76d4d2d28f34fe77d 100755
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -33,10 +33,33 @@ export interface BlockContentMap {
+     heading: Heading;
+     thematicBreak: ThematicBreak;
+     blockquote: Blockquote;
++    callout: Callout;
+     list: List;
+     table: Table;
+     html: HTML;
+     code: Code;
++    dl: DescriptionList;
++}
++
++export interface DescriptionTerm extends Parent {
++  type: "dt";
++  children: ListItem["children"];
++}
++
++export interface DescriptionDetails extends Parent {
++  type: "dd";
++  children: ListItem["children"];
++}
++
++export interface DescriptionList extends Parent {
++  type: "dl";
++  children: (DescriptionTerm | DescriptionDetails)[];
++}
++
++export interface Callout extends Parent {
++  type: "callout";
++  kind: "Note" | "Warning" | "Callout";
++  children: Blockquote["children"];
+ }
+ 
+ /**
+@@ -166,7 +189,7 @@ export interface RowContentMap {
+     tableCell: TableCell;
+ }
+ 
+-export type Content = TopLevelContent | ListContent | TableContent | RowContent | PhrasingContent;
++export type Content = TopLevelContent | ListContent | TableContent | RowContent | PhrasingContent | DescriptionTerm | DescriptionDetails;
+ 
+ export type TopLevelContent = BlockContent | FrontmatterContent | DefinitionContent;
+ 

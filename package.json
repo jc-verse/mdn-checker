@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "author": "Joshua Chen <sidachen2003@gmail.com>",
   "license": "MIT",
+  "type": "module",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
@@ -23,7 +24,17 @@
     "prepare": "husky install"
   },
   "packageManager": "yarn@3.5.0",
+  "dependencies": {
+    "core-js": "^3.30.0",
+    "front-matter": "^4.0.2",
+    "remark-gfm": "^3.0.1",
+    "remark-parse": "^10.0.1",
+    "unified": "^10.1.2",
+    "unist-util-visit": "^4.1.2",
+    "zod": "^3.21.4"
+  },
   "devDependencies": {
+    "@types/node": "^18.15.11",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
     "cspell": "^6.31.1",
@@ -37,5 +48,8 @@
     "prettier-config-jc": "^2.3.0",
     "tsconfig-jc": "^2.3.0",
     "typescript": "^5.0.3"
+  },
+  "resolutions": {
+    "@types/mdast@^3.0.0": "patch:@types/mdast@npm%3A3.0.11#./.yarn/patches/@types-mdast-npm-3.0.11-4765a259eb.patch"
   }
 }
