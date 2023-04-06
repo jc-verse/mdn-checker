@@ -3,6 +3,7 @@ import "./polyfill.js";
 import FS from "node:fs/promises";
 import Path from "node:path";
 import type { Root } from "mdast";
+import type { Node } from "unist";
 import { parse, type File, type FrontMatter } from "./parser/index.js";
 
 async function* getFiles(
@@ -26,9 +27,9 @@ const javascriptPath = Path.join(contentPath, "files/en-us/web/javascript");
 
 const [rules, files] = await Promise.all([
   Promise.all([
-    // Import("./rules/bad-dl.js"),
-    // import("./rules/heading.js"),
-    // import("./rules/deprecation-note.js"),
+    import("./rules/bad-dl.js"),
+    import("./rules/heading.js"),
+    import("./rules/deprecation-note.js"),
     import("./rules/syntax-section.js"),
   ]),
   Array.fromAsync(getFiles(javascriptPath)),
@@ -51,6 +52,12 @@ export class Context {
       `\u001B]8;;${this.path}\u0007${this.frontMatter.title}\u001B]8;;\u0007: ${this.path}`,
     );
     console.error(message);
+  }
+  getSource(node: Node): string {
+    return this.source.slice(
+      node.position!.start.offset,
+      node.position!.end.offset,
+    );
   }
 }
 

@@ -25,9 +25,7 @@ function treeifyTOC(headings: Heading[], context: Context): TOCTreeNode[] {
       ? items[heading.parentIndex]!.children
       : rootNodes
     ).push({
-      heading: context.source
-        .slice(heading.position!.start.offset!, heading.position!.end.offset!)
-        .replace(/^#+ /, ""),
+      heading: context.getSource(heading).replace(/^#+ /, ""),
       children: heading.children,
     });
   });

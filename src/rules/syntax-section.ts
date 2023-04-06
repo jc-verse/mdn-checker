@@ -40,6 +40,20 @@ function selectNotePattern(ctor: string): string[] {
   return notePatterns;
 }
 
+const typedArrayCtors = [
+  "BigInt64Array",
+  "BigUint64Array",
+  "Float32Array",
+  "Float64Array",
+  "Int16Array",
+  "Int32Array",
+  "Int8Array",
+  "Uint16Array",
+  "Uint32Array",
+  "Uint8Array",
+  "Uint8ClampedArray",
+];
+
 export default function rule(context: Context): void {
   const syntaxHeading = context.ast.children.findIndex(isSyntaxHeading);
   const syntaxSection = context.ast.children
@@ -59,10 +73,7 @@ export default function rule(context: Context): void {
     if (!note || note.type !== "callout" || note.kind !== "Note") {
       context.report("Missing note about constructor");
     } else {
-      const noteText = context.source.slice(
-        note.children[0]!.position!.start.offset,
-        note.children[0]!.position!.end.offset,
-      );
+      const noteText = context.getSource(note.children[0]!);
       const ctor = context.frontMatter.title.replace("() constructor", "");
       const expectedNote = selectNotePattern(ctor).map((p) =>
         interpolate(p, { ctor }),
@@ -71,6 +82,75 @@ export default function rule(context: Context): void {
         context.report("Note about constructor is wrong");
     }
   }
+  const subheadings = Object.fromEntries(
+    syntaxSection
+      .map((n, i) => [n, i] as const)
+      .filter(
+        (p): p is [Heading, number] =>
+          p[0].type === "heading" && p[0].depth === 3,
+      )
+      .map(
+        ([
+          {
+            children: [content],
+          },
+          i,
+        ]) => [content?.type === "text" ? content.value : "", i] as const,
+      ),
+  );
+  function checkSubsection(
+    sectionName: string,
+    checker: (section: Content[]) => void,
+  ) {
+    const index = subheadings[sectionName];
+    if (index && index > 0) {
+      const rvSection = syntaxSection.slice(
+        index + 1,
+        Object.values(subheadings)[
+          Object.keys(subheadings).indexOf(sectionName) + 1
+        ],
+      );
+      checker(rvSection);
+    }
+  }
+  // CheckSubsection("Return value", (section) => {
+  //   if (section.some((n) => !["callout", "paragraph", "dl"].includes(n.type)))
+  //   console.log(context.path);
+  // });
+  checkSubsection("Exceptions", (section) => {
+    if (
+      typedArrayCtors.includes(
+        context.frontMatter.title.replace("() constructor", ""),
+      )
+    ) {
+      if (
+        section.length !== 1 ||
+        context.getSource(section[0]!).trim() !==
+          "See [`TypedArray`](/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#exceptions)."
+      )
+        context.report("TypedArray Exceptions incorrect");
+    } else if (section.length !== 1 || section[0]!.type !== "dl") {
+      context.report("Exceptions section must be a single dl");
+    } else if (
+      section[0].children.some(
+        (n) =>
+          n.type === "dt" &&
+          !/^\{\{jsxref\("(?:TypeError|RangeError|SyntaxError|ReferenceError|URIError)"\)}}$/.test(
+            context.getSource(n).trim(),
+          ),
+      )
+    ) {
+      context.report("Exceptions section must contain known errors");
+    } else if (
+      section[0].children.some(
+        (n) =>
+          n.type === "dd" &&
+          !context.getSource(n).trim().startsWith("- : Thrown if"),
+      )
+    ) {
+      context.report("Exception description must start with 'Thrown if'");
+    }
+  });
 }
 
 rule.appliesTo = (context: Context) =>

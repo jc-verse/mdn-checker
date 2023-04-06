@@ -47,7 +47,7 @@ function asDefinitionList(node: List): DescriptionList {
       {
         type: "dt",
         children: listItem.children.slice(0, -1),
-        position: definition.position,
+        position: listItem.children[0]!.position,
       } satisfies DescriptionTerm,
       {
         type: "dd",
