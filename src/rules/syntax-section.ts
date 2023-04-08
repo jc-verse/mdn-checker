@@ -104,13 +104,13 @@ export default function rule(context: Context): void {
   ) {
     const index = subheadings[sectionName];
     if (index && index > 0) {
-      const rvSection = syntaxSection.slice(
+      const section = syntaxSection.slice(
         index + 1,
         Object.values(subheadings)[
           Object.keys(subheadings).indexOf(sectionName) + 1
         ],
       );
-      checker(rvSection);
+      checker(section);
     }
   }
   // CheckSubsection("Return value", (section) => {

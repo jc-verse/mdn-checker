@@ -14,10 +14,12 @@ function toCallout(node: Blockquote): Blockquote | Callout {
   )
     return node;
   firstParagraph.children.shift();
-  if (firstParagraph.children.length === 0) {node.children.shift();}
-  else
-    {firstParagraph.position!.start =
-      firstParagraph.children[0]!.position!.start;}
+  if (firstParagraph.children.length === 0) {
+    node.children.shift();
+  } else {
+    firstParagraph.position!.start =
+      firstParagraph.children[0]!.position!.start;
+  }
   return {
     type: "callout",
     kind: strongText.value.slice(0, -1) as Callout["kind"],

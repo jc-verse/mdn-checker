@@ -3,5 +3,8 @@ frontmatter
 jsxref
 mdast
 nolint
+subpage
+subpages
 treeify
 unist
+unprefixed

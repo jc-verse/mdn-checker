@@ -27,10 +27,11 @@ const javascriptPath = Path.join(contentPath, "files/en-us/web/javascript");
 
 const [rules, files] = await Promise.all([
   Promise.all([
-    import("./rules/bad-dl.js"),
-    import("./rules/heading.js"),
-    import("./rules/deprecation-note.js"),
-    import("./rules/syntax-section.js"),
+    // Import("./rules/bad-dl.js"),
+    import("./rules/class-members.js"),
+    // Import("./rules/heading.js"),
+    // import("./rules/deprecation-note.js"),
+    // import("./rules/syntax-section.js"),
   ]),
   Array.fromAsync(getFiles(javascriptPath)),
 ]);
@@ -58,6 +59,25 @@ export class Context {
       node.position!.start.offset,
       node.position!.end.offset,
     );
+  }
+  getSubpages(path?: string, options?: { withPath?: false }): File[];
+  getSubpages(
+    path: string | undefined,
+    options: { withPath: true },
+  ): [string, File][];
+  getSubpages(
+    path?: string,
+    { withPath = false }: { withPath?: boolean } = {},
+  ): ([string, File] | File)[] {
+    const subpages: ([string, File] | File)[] = [];
+    const basePath = Path.dirname(path ?? this.path);
+    for (const [p, file] of this.files)
+      {if (Path.dirname(Path.dirname(p)) === basePath)
+        subpages.push(withPath ? [p, file] : file);}
+    return subpages;
+  }
+  getFile(path: string): File | undefined {
+    return this.files.get(Path.resolve(javascriptPath, path, "index.md"));
   }
 }
 
