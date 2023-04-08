@@ -1,3 +1,4 @@
+import { editingSteps } from "../utils.js";
 import type { Context } from "../index.js";
 import type { Heading } from "mdast";
 
@@ -100,59 +101,33 @@ export default function rule(context: Context): void {
   //     context.report("Heading has multiple children");
   // }
   const tree = treeifyTOC(headings, context);
-  const expected =
+  const actualTexts = tree.map((t) => t.heading);
+  let expectedTexts =
     headingSequence[
       context.frontMatter["page-type"] as keyof typeof headingSequence
     ];
-  let actualInd = 0,
-    expectedInd = 0;
-  while (actualInd < tree.length && expectedInd < expected.length) {
-    const actualText = tree[actualInd]!.heading;
-    const expectedText = expected[expectedInd]!;
-    if (actualText === expectedText) {
-      actualInd++;
-      expectedInd++;
-      continue;
-    }
-    const actualInExpectedInd = expected.findIndex(
-      // eslint-disable-next-line @typescript-eslint/no-loop-func
-      (t, ind) => ind > expectedInd && t === actualText,
-    );
-    const expectedInActualInd = tree.findIndex(
-      // eslint-disable-next-line @typescript-eslint/no-loop-func
-      (t, ind) => ind > actualInd && t.heading === expectedText,
-    );
-    // At most one should be positive;
-    // both are negative means no need to match further
-    if (actualInExpectedInd * expectedInActualInd > 0) break;
-    if (expectedInActualInd >= 0) {
-      context.report(
-        `Unrecognized headings: ${tree
-          .slice(actualInd, expectedInActualInd)
-          .map((t) => t.heading)
-          .join(", ")}`,
-      );
-      actualInd = expectedInActualInd;
-    } else {
-      const allExpected = expected
-        .slice(expectedInd, actualInExpectedInd)
-        .filter((t) => !headingIsOptional(t, context));
-      if (allExpected.length > 0)
-        context.report(`Missing headings: ${allExpected.join(", ")}`);
-      expectedInd = actualInExpectedInd;
-    }
-  }
-  if (expectedInd < expected.length) {
+  if (context.frontMatter.title === "The arguments object")
+    {expectedTexts = expectedTexts.toSpliced(
+      expectedTexts.indexOf("Examples"),
+      0,
+      "Properties",
+    );}
+  const edits = editingSteps(actualTexts, expectedTexts).filter(
+    (e) => e[0] !== "i" || !headingIsOptional(e[1], context),
+  );
+  if (edits.length) {
     context.report(
-      `Missing headings: ${expected.slice(expectedInd).join(", ")}`,
-    );
-  }
-  if (actualInd < tree.length) {
-    context.report(
-      `Unrecognized headings: ${tree
-        .slice(actualInd)
-        .map((t) => t.heading)
-        .join(", ")}`,
+      `Unexpected headings:
+- ${edits
+        .map(
+          (e) =>
+            ({
+              d: `extra "${e[1]}"`,
+              i: `missing "${e[1]}"`,
+              s: `"${e[1]}" should be "${e[2]}"`,
+            }[e[0]]),
+        )
+        .join("\n- ")}`,
     );
   }
 }

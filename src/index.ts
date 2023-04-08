@@ -27,11 +27,11 @@ const javascriptPath = Path.join(contentPath, "files/en-us/web/javascript");
 
 const [rules, files] = await Promise.all([
   Promise.all([
-    // Import("./rules/bad-dl.js"),
+    import("./rules/bad-dl.js"),
     import("./rules/class-members.js"),
-    // Import("./rules/heading.js"),
-    // import("./rules/deprecation-note.js"),
-    // import("./rules/syntax-section.js"),
+    import("./rules/deprecation-note.js"),
+    import("./rules/heading.js"),
+    import("./rules/syntax-section.js"),
   ]),
   Array.fromAsync(getFiles(javascriptPath)),
 ]);
@@ -71,9 +71,10 @@ export class Context {
   ): ([string, File] | File)[] {
     const subpages: ([string, File] | File)[] = [];
     const basePath = Path.dirname(path ?? this.path);
-    for (const [p, file] of this.files)
-      {if (Path.dirname(Path.dirname(p)) === basePath)
-        subpages.push(withPath ? [p, file] : file);}
+    for (const [p, file] of this.files) {
+      if (Path.dirname(Path.dirname(p)) === basePath)
+        subpages.push(withPath ? [p, file] : file);
+    }
     return subpages;
   }
   getFile(path: string): File | undefined {

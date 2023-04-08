@@ -1,7 +1,7 @@
 import nativeStringTag from "../data/native-to-string-tag.js";
 import inheritance from "../data/inheritance.js";
 import abstractClasses from "../data/abstract-classes.js";
-import { toJSxRef as baseToJSxRef } from "../utils.js";
+import { toJSxRef as baseToJSxRef, editingSteps } from "../utils.js";
 
 import type { Heading, DescriptionList } from "mdast";
 import type { Context } from "../index.js";
@@ -121,97 +121,56 @@ export default function rule(context: Context): void {
     const dls = section.filter(
       (node): node is DescriptionList => node.type === "dl",
     );
+    // Merge the items for now; maybe we should check instance accessor and data
+    // properties separately
+    const items = dls.flatMap((dl) => dl.children);
     if (dls.length !== 1) {
       if (
         type !== "Instance properties" &&
         !(type === "Instance methods" && objName === "String")
       )
         context.report(`${type} section should have one definition list`);
-      // Merge them for now; maybe we should check instance accessor and data
-      // properties separately
-      dls[0]!.children.push(...dls[1]!.children);
     }
-    const dl = dls[0]!;
-    const items = dl.children.filter((node) => node.type === "dt");
-    let actualInd = 0,
-      expectedInd = 0;
-    while (actualInd < items.length && expectedInd < members.length) {
-      const actualText = context.getSource(items[actualInd]!);
-      const expectedMember = members[expectedInd]!;
-      const expectedText =
-        toJSxRef(expectedMember) +
-        (typeof expectedMember === "string"
+    const actualTexts = items
+      .filter((node) => node.type === "dt")
+      .map((item) => context.getSource(item));
+    const expectedTexts = members.map(
+      (m) =>
+        toJSxRef(m) +
+        (typeof m === "string"
           ? ""
-          : (expectedMember.frontMatter.status?.includes("experimental")
-              ? " {{Experimental_Inline}}"
-              : "") +
-            (expectedMember.frontMatter.status?.includes("deprecated")
-              ? " {{Deprecated_Inline}}"
-              : "") +
-            (expectedMember.frontMatter.status?.includes("non-standard")
-              ? " {{Non-standard_Inline}}"
-              : ""));
-      if (actualText === expectedText) {
-        actualInd++;
-        expectedInd++;
-        continue;
-      }
-      const actualInExpectedInd = members.findIndex(
-        // eslint-disable-next-line @typescript-eslint/no-loop-func
-        (t, ind) => ind > expectedInd && toJSxRef(t) === actualText,
-      );
-      const expectedInActualInd = items.findIndex(
-        // eslint-disable-next-line @typescript-eslint/no-loop-func
-        (t, ind) =>
-          ind > actualInd &&
-          t.type === "dt" &&
-          context.getSource(t) === expectedText,
-      );
-      // At most one should be positive;
-      // both are negative means no need to match further
-      if (actualInExpectedInd * expectedInActualInd > 0) break;
-      if (expectedInActualInd >= 0) {
-        context.report(
-          `Unrecognized ${type.toLowerCase()}: ${items
-            .slice(actualInd, expectedInActualInd)
-            .map((t) => context.getSource(t))
-            .join(", ")}`,
-        );
-        actualInd = expectedInActualInd;
-      } else {
-        const allExpected = members
-          .slice(expectedInd, actualInExpectedInd)
-          .map((t) => toJSxRef(t));
-        if (allExpected.length > 0) {
-          context.report(
-            `Missing ${type.toLowerCase()}: ${allExpected.join(", ")}`,
-          );
-        }
-        expectedInd = actualInExpectedInd;
-      }
-    }
-    if (expectedInd < members.length) {
+          : m.frontMatter.status
+              ?.map(
+                (s) =>
+                  ({
+                    experimental: " {{Experimental_Inline}}",
+                    deprecated: " {{Deprecated_Inline}}",
+                    "non-standard": " {{Non-standard_Inline}}",
+                  }[s]),
+              )
+              .join("") ?? ""),
+    );
+    const edits = editingSteps(actualTexts, expectedTexts);
+    if (edits.length) {
       context.report(
-        `Missing ${type.toLowerCase()}: ${members
-          .slice(expectedInd)
-          .map((t) => toJSxRef(t))
-          .join(", ")}`,
-      );
-    }
-    if (actualInd < items.length) {
-      context.report(
-        `Unrecognized ${type.toLowerCase()}: ${items
-          .slice(actualInd)
-          .filter((t) => t.type === "dt")
-          .map((t) => context.getSource(t))
-          .join(", ")}`,
+        `Section ${type} has unexpected items:
+- ${edits
+          .map(
+            (e) =>
+              ({
+                d: `extra "${e[1]}"`,
+                i: `missing "${e[1]}"`,
+                s: `"${e[1]}" should be "${e[2]}"`,
+              }[e[0]]),
+          )
+          .join("\n- ")}`,
       );
     }
   }
   if (!abstractClasses.includes(objName)) {
     if (subpages["javascript-constructor"]?.length !== 1)
       context.report("A class should have one constructor");
-    else checkMembers("Constructor", subpages["javascript-constructor"]);
+    checkMembers("Constructor", subpages["javascript-constructor"]);
   }
   checkMembers(
     "Static properties",
