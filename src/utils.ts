@@ -1,4 +1,39 @@
-import type { FrontMatter } from "./parser/front-matter.js";
+export function mapValues<T, U>(
+  obj: Record<string, T>,
+  fn: (value: T, key: string) => U,
+): Record<string, U>;
+export function mapValues(
+  obj: unknown,
+  fn: (value: unknown, key: string) => unknown,
+): unknown;
+export function mapValues(
+  obj: unknown,
+  fn: (value: unknown, key: string) => unknown,
+): unknown {
+  if (typeof obj !== "object" || obj === null) return obj;
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, fn(v, k)]));
+}
+
+export function toEnglish(str: string): string {
+  switch (str) {
+    case "RegExp":
+      return "(?:regex|regular expression)";
+    case "ArrayBuffer":
+      return "(?:array )?buffer";
+    case "DataView":
+      return "(?:data )?view";
+    case "Intl.Locale":
+      return "locale";
+    case "SharedArrayBuffer":
+    case "Segments":
+    case "arguments":
+      return `\`${str}\``;
+    default: {
+      const words = str.split(/(?=[A-Z])/);
+      return words.map((w) => w.toLowerCase()).join(" ");
+    }
+  }
+}
 
 export function interpolate(
   text: string,
@@ -9,8 +44,20 @@ export function interpolate(
     /~([^~]+)~/g,
     (match, p1) =>
       // eslint-disable-next-line no-new-func
-      Function(...Object.keys(params), `return ${p1}`)(Object.values(params)),
+      Function(
+        ...Object.keys(params),
+        `return ${p1}`,
+      )(...Object.values(params)),
   );
+}
+
+export function escapeRegExp(
+  strings: TemplateStringsArray | string,
+  ...args: string[]
+): string {
+  if (typeof strings === "string")
+    return strings.replace(/[\^$\\.*+?()[\]{}|]/g, "\\$&");
+  return String.raw({ raw: strings.map((s) => escapeRegExp(s)) }, ...args);
 }
 
 type Action = ["d", string] | ["i", string] | ["s", string, string];
@@ -47,78 +94,4 @@ export function editingSteps(start: string[], end: string[]): Action[] {
     }
   }
   return dp[start.length]![end.length]!;
-}
-
-function last(slug: string, n: number): string {
-  return slug.split("/").slice(-n).join("/");
-}
-
-export function toJSxRef(frontMatter: FrontMatter): string {
-  if (
-    frontMatter.title.match(/__.+__/) ||
-    frontMatter.title.startsWith("Segments") ||
-    (frontMatter.title.includes("@@") &&
-      frontMatter["page-type"].endsWith("-method"))
-  )
-    return `[\`${frontMatter.title}\`](/en-US/docs/${frontMatter.slug})`;
-  switch (frontMatter["page-type"]) {
-    case "javascript-class":
-    case "javascript-namespace":
-      return `{{jsxref("${frontMatter.title}")}}`;
-    case "javascript-constructor": {
-      const objName = frontMatter.title.replace(" constructor", "");
-      return `{{jsxref("${last(
-        frontMatter.slug,
-        objName.startsWith("Intl.") ? 3 : 2,
-      )}", "${objName}")}}`;
-    }
-    case "javascript-instance-method":
-    case "javascript-static-method": {
-      if (frontMatter.title.startsWith("Intl.")) {
-        return `{{jsxref("${last(frontMatter.slug, 3)}", "${
-          frontMatter.title
-        }")}}`;
-      }
-      return `{{jsxref("${frontMatter.title}")}}`;
-    }
-    case "javascript-instance-accessor-property":
-    case "javascript-static-accessor-property": {
-      if (/ \(\$.\)$|…/.test(frontMatter.title)) {
-        return `{{jsxref("${last(frontMatter.slug, 2).replaceAll(
-          "/",
-          ".",
-        )}", "${frontMatter.title}")}}`;
-      }
-    }
-    // Fallthrough
-    case "javascript-static-data-property": {
-      const cleanTitle = frontMatter.title.replace("get ", "");
-      if (frontMatter.title.startsWith("Intl."))
-        return `{{jsxref("${last(frontMatter.slug, 3)}", "${cleanTitle}")}}`;
-      if (frontMatter.title.includes("@@"))
-        return `{{jsxref("${last(frontMatter.slug, 2)}", "${cleanTitle}")}}`;
-      return `{{jsxref("${cleanTitle}")}}`;
-    }
-    case "javascript-instance-data-property": {
-      if (frontMatter.title.startsWith("Intl.")) {
-        return `{{jsxref("${last(frontMatter.slug, 3)}", "${
-          frontMatter.title
-        }")}}`;
-      }
-      if (frontMatter.title.includes("@@")) {
-        return `{{jsxref("${last(frontMatter.slug, 2)}", "${
-          frontMatter.title
-        }")}}`;
-      }
-      if (frontMatter.title.includes(": ")) {
-        return `{{jsxref("${last(
-          frontMatter.slug,
-          2,
-        )}", "${frontMatter.title.replace(/.*: /, "")}")}}`;
-      }
-      return `{{jsxref("${frontMatter.title}")}}`;
-    }
-    default:
-      return "";
-  }
 }

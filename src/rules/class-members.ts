@@ -1,7 +1,8 @@
 import nativeStringTag from "../data/native-to-string-tag.js";
 import inheritance from "../data/inheritance.js";
 import abstractClasses from "../data/abstract-classes.js";
-import { toJSxRef as baseToJSxRef, editingSteps } from "../utils.js";
+import { editingSteps } from "../utils.js";
+import { toJSxRef as baseToJSxRef } from "../serializer/toJSxRef.js";
 
 import type { Heading, DescriptionList } from "mdast";
 import type { Context } from "../index.js";

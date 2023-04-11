@@ -2767,7 +2767,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mdast-util-to-string@npm:^3.0.0, mdast-util-to-string@npm:^3.1.0":
+"mdast-util-to-string@npm:^3.0.0, mdast-util-to-string@npm:^3.1.0, mdast-util-to-string@npm:^3.2.0":
   version: 3.2.0
   resolution: "mdast-util-to-string@npm:3.2.0"
   dependencies:
@@ -2792,6 +2792,7 @@ __metadata:
     front-matter: ^4.0.2
     husky: ^8.0.3
     lint-staged: ^13.2.0
+    mdast-util-to-string: ^3.2.0
     prettier: ^2.8.7
     prettier-config-jc: ^2.3.0
     remark-gfm: ^3.0.1

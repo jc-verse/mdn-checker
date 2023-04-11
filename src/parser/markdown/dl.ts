@@ -3,7 +3,6 @@ import type { Plugin } from "unified";
 import type {
   List,
   Parent,
-  Content,
   DescriptionList,
   DescriptionTerm,
   DescriptionDetails,
@@ -65,8 +64,7 @@ function asDefinitionList(node: List): DescriptionList {
 
 const definitionList: Plugin = () => (tree) => {
   visit(tree, "list", (node: List, index: number, parent: Parent) => {
-    if (isDefinitionList(node))
-      parent.children[index] = asDefinitionList(node) as unknown as Content;
+    if (isDefinitionList(node)) parent.children[index] = asDefinitionList(node);
   });
 };
 

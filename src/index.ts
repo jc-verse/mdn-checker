@@ -27,9 +27,11 @@ const javascriptPath = Path.join(contentPath, "files/en-us/web/javascript");
 
 const [rules, files] = await Promise.all([
   Promise.all([
+    // Load rules; each import() must take a literal to allow static analysis
     import("./rules/bad-dl.js"),
     import("./rules/class-members.js"),
     import("./rules/deprecation-note.js"),
+    import("./rules/description.js"),
     import("./rules/heading.js"),
     import("./rules/syntax-section.js"),
   ]),
@@ -39,7 +41,11 @@ const [rules, files] = await Promise.all([
 const pathToFile = new Map(files);
 
 export class Context {
-  files = pathToFile;
+  declare files: Map<string, File>;
+  static {
+    Context.prototype.files = pathToFile;
+  }
+  static #descriptions = new Map<string, string>();
   path = "";
   source = "";
   ast: Root = null!;
@@ -54,8 +60,8 @@ export class Context {
     );
     console.error(message);
   }
-  getSource(node: Node): string {
-    return this.source.slice(
+  getSource(node: Node, file: File = this): string {
+    return file.source.slice(
       node.position!.start.offset,
       node.position!.end.offset,
     );
@@ -80,11 +86,29 @@ export class Context {
   getFile(path: string): File | undefined {
     return this.files.get(Path.resolve(javascriptPath, path, "index.md"));
   }
+  getDescription(
+    path: string = Path.dirname(Path.relative(javascriptPath, this.path)),
+  ): string {
+    let description = Context.#descriptions.get(path);
+    if (description) return description;
+    const file = this.getFile(path);
+    if (!file) return "";
+    const descriptionNode = file.ast.children.find(
+      (node) =>
+        node.type === "paragraph" &&
+        !/^\{\{.*\}\}$/.test(this.getSource(node, file)),
+    );
+    if (!descriptionNode) return "";
+    // TODO new lines should be removed from source
+    description = this.getSource(descriptionNode).replaceAll("\n", " ");
+    Context.#descriptions.set(path, description);
+    return description;
+  }
 }
 
 pathToFile.forEach((file, path) => {
+  const context = new Context(path, file);
   rules.forEach(({ default: rule }) => {
-    const context = new Context(path, file);
     if (rule.appliesTo(context)) rule(context);
   });
 });
