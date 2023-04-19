@@ -25,7 +25,10 @@ export function toJSxRef(frontMatter: FrontMatter): string {
     }
     case "javascript-instance-method":
     case "javascript-static-method": {
-      if (frontMatter.title.startsWith("Intl.")) {
+      if (
+        frontMatter.title.startsWith("Intl.") &&
+        frontMatter.slug.split("/").at(-2) !== "Intl"
+      ) {
         return `{{jsxref("${last(frontMatter.slug, 3)}", "${
           frontMatter.title
         }")}}`;
@@ -34,11 +37,16 @@ export function toJSxRef(frontMatter: FrontMatter): string {
     }
     case "javascript-instance-accessor-property":
     case "javascript-static-accessor-property": {
-      if (/ \(\$.\)$|…/.test(frontMatter.title)) {
+      if (/ \(\$.\)$/.test(frontMatter.title)) {
         return `{{jsxref("${last(frontMatter.slug, 2).replaceAll(
           "/",
           ".",
         )}", "${frontMatter.title}")}}`;
+      }
+      if (/…/.test(frontMatter.title)) {
+        return `{{jsxref("${last(frontMatter.slug, 2)}", "${
+          frontMatter.title
+        }")}}`;
       }
     }
     // Fallthrough

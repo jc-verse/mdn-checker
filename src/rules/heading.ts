@@ -106,12 +106,13 @@ export default function rule(context: Context): void {
     headingSequence[
       context.frontMatter["page-type"] as keyof typeof headingSequence
     ];
-  if (context.frontMatter.title === "The arguments object")
-    {expectedTexts = expectedTexts.toSpliced(
+  if (context.frontMatter.title === "The arguments object") {
+    expectedTexts = expectedTexts.toSpliced(
       expectedTexts.indexOf("Examples"),
       0,
       "Properties",
-    );}
+    );
+  }
   const edits = editingSteps(actualTexts, expectedTexts).filter(
     (e) => e[0] !== "i" || !headingIsOptional(e[1], context),
   );

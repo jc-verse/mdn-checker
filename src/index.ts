@@ -28,12 +28,12 @@ const javascriptPath = Path.join(contentPath, "files/en-us/web/javascript");
 const [rules, files] = await Promise.all([
   Promise.all([
     // Load rules; each import() must take a literal to allow static analysis
-    import("./rules/bad-dl.js"),
-    import("./rules/class-members.js"),
-    import("./rules/deprecation-note.js"),
-    import("./rules/description.js"),
-    import("./rules/heading.js"),
-    import("./rules/syntax-section.js"),
+    // import("./rules/bad-dl.js"),
+    // import("./rules/class-members.js"),
+    // import("./rules/deprecation-note.js"),
+    // import("./rules/description.js"),
+    // import("./rules/heading.js"),
+    // import("./rules/syntax-section.js"),
   ]),
   Array.fromAsync(getFiles(javascriptPath)),
 ]);

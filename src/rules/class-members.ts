@@ -1,6 +1,7 @@
 import nativeStringTag from "../data/native-to-string-tag.js";
 import inheritance from "../data/inheritance.js";
 import abstractClasses from "../data/abstract-classes.js";
+import namespaces from "../data/namespaces.js";
 import { editingSteps } from "../utils.js";
 import { toJSxRef as baseToJSxRef } from "../serializer/toJSxRef.js";
 
@@ -19,7 +20,9 @@ function adjustMembers(
   const objName = context.frontMatter.title;
   if (
     type === "Instance properties" &&
-    !["Iterator", "AsyncIterator", "Proxy", "Segments"].includes(objName)
+    !["Iterator", "AsyncIterator", "Proxy", "Segments", ...namespaces].includes(
+      objName,
+    )
   ) {
     if (!["Object"].includes(objName)) {
       members.push(
@@ -35,6 +38,8 @@ function adjustMembers(
     if (inheritance[objName]?.includes("Error"))
       members.push(`{{jsxref("Error/name", "${objName}.prototype.name")}}`);
   }
+  if (type === "Static properties" && namespaces.includes(objName))
+    members.push(`\`${objName}[@@toStringTag]\``);
   if (
     inheritance[objName]?.includes("TypedArray") &&
     type === "Static properties"
@@ -83,6 +88,37 @@ export default function rule(context: Context): void {
       (h) => [context.getSource(h), context.ast.children.indexOf(h)] as const,
     );
   const objName = context.frontMatter.title;
+  if (!abstractClasses.includes(objName)) {
+    if (
+      context.frontMatter["page-type"] === "javascript-class" &&
+      subpages["javascript-constructor"]?.length !== 1
+    )
+      context.report("A class should have one constructor");
+    else if (
+      context.frontMatter["page-type"] === "javascript-namespace" &&
+      subpages["javascript-constructor"]?.length
+    )
+      context.report("A namespace should not have a constructor");
+    checkMembers("Constructor", subpages["javascript-constructor"]);
+  }
+  checkMembers(
+    "Static properties",
+    Array<File>().concat(
+      subpages["javascript-static-data-property"] ?? [],
+      subpages["javascript-static-accessor-property"] ?? [],
+      objName === "Intl" ? subpages["javascript-class"] ?? [] : [],
+    ),
+  );
+  checkMembers("Static methods", subpages["javascript-static-method"]);
+  checkMembers(
+    "Instance properties",
+    Array<File>().concat(
+      subpages["javascript-instance-data-property"] ?? [],
+      subpages["javascript-instance-accessor-property"] ?? [],
+    ),
+  );
+  checkMembers("Instance methods", subpages["javascript-instance-method"]);
+
   function checkMembers(type: string, members: (File | string)[] = []) {
     adjustMembers(type, members, context);
     const thisHeading = headings.findIndex(([text]) => text === `## ${type}`);
@@ -168,28 +204,9 @@ export default function rule(context: Context): void {
       );
     }
   }
-  if (!abstractClasses.includes(objName)) {
-    if (subpages["javascript-constructor"]?.length !== 1)
-      context.report("A class should have one constructor");
-    checkMembers("Constructor", subpages["javascript-constructor"]);
-  }
-  checkMembers(
-    "Static properties",
-    Array<File>().concat(
-      subpages["javascript-static-data-property"] ?? [],
-      subpages["javascript-static-accessor-property"] ?? [],
-    ),
-  );
-  checkMembers("Static methods", subpages["javascript-static-method"]);
-  checkMembers(
-    "Instance properties",
-    Array<File>().concat(
-      subpages["javascript-instance-data-property"] ?? [],
-      subpages["javascript-instance-accessor-property"] ?? [],
-    ),
-  );
-  checkMembers("Instance methods", subpages["javascript-instance-method"]);
 }
 
 rule.appliesTo = (context: Context) =>
-  context.frontMatter["page-type"] === "javascript-class";
+  ["javascript-class", "javascript-namespace"].includes(
+    context.frontMatter["page-type"],
+  );

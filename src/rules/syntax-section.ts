@@ -1,4 +1,5 @@
 import { interpolate } from "../utils.js";
+import inheritance from "../data/inheritance.js";
 import type { Content, Heading } from "mdast";
 import type { Context } from "../index.js";
 
@@ -40,19 +41,9 @@ function selectNotePattern(ctor: string): string[] {
   return notePatterns;
 }
 
-const typedArrayCtors = [
-  "BigInt64Array",
-  "BigUint64Array",
-  "Float32Array",
-  "Float64Array",
-  "Int16Array",
-  "Int32Array",
-  "Int8Array",
-  "Uint16Array",
-  "Uint32Array",
-  "Uint8Array",
-  "Uint8ClampedArray",
-];
+const typedArrayCtors = Object.keys(inheritance).filter((k) =>
+  inheritance[k]?.includes("TypedArray"),
+);
 
 export default function rule(context: Context): void {
   const syntaxHeading = context.ast.children.findIndex(isSyntaxHeading);
