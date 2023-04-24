@@ -1,8 +1,8 @@
 {
   "extends": "tsconfig-jc",
   "compilerOptions": {
-    "target": "es2020",
-    "lib": ["esnext", "dom"],
+    "target": "esnext",
+    "lib": ["esnext"],
     "rootDir": "./src",
     "outDir": "./dist",
     "skipLibCheck": true,
@@ -12,6 +12,6 @@
   "ts-node": {
     "esm": true
   },
-  "include": ["src", "lib/index.d.ts"],
+  "include": ["src"],
   "exclude": ["node_modules"]
 }

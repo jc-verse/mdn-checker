@@ -2,9 +2,10 @@ import "./polyfill.js";
 
 import FS from "node:fs/promises";
 import Path from "node:path";
+import { loadConfig } from "./config.js";
+import { parse, type File, type FrontMatter } from "./parser/index.js";
 import type { Root } from "mdast";
 import type { Node } from "unist";
-import { parse, type File, type FrontMatter } from "./parser/index.js";
 
 async function* getFiles(
   dir: string,
@@ -22,21 +23,27 @@ async function* getFiles(
   }
 }
 
-const contentPath = Path.resolve(process.cwd(), process.argv[2]!);
+if (!process.argv[2]) throw new Error("No content path specified");
+
+const contentPath = Path.resolve(process.cwd(), process.argv[2]);
 const javascriptPath = Path.join(contentPath, "files/en-us/web/javascript");
 
-const [rules, files] = await Promise.all([
+const [allRules, files, config] = await Promise.all([
   Promise.all([
     // Load rules; each import() must take a literal to allow static analysis
-    // import("./rules/bad-dl.js"),
-    // import("./rules/class-members.js"),
-    // import("./rules/deprecation-note.js"),
-    // import("./rules/description.js"),
-    // import("./rules/heading.js"),
-    // import("./rules/syntax-section.js"),
+    import("./rules/bad-dl.js"),
+    import("./rules/class-members.js"),
+    import("./rules/deprecation-note.js"),
+    import("./rules/description.js"),
+    import("./rules/heading.js"),
+    import("./rules/syntax-section.js"),
+    import("./rules/data-prop.js"),
   ]),
   Array.fromAsync(getFiles(javascriptPath)),
+  loadConfig(),
 ]);
+
+const rules = allRules.filter((rule) => config.rules[rule.default.name]);
 
 const pathToFile = new Map(files);
 
@@ -48,8 +55,8 @@ export class Context {
   static #descriptions = new Map<string, string>();
   path = "";
   source = "";
-  ast: Root = null!;
-  frontMatter: FrontMatter = null!;
+  ast!: Root;
+  frontMatter!: FrontMatter;
   constructor(path: string, file: File) {
     this.path = path;
     Object.assign(this, file);

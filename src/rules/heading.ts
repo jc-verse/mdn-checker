@@ -133,5 +133,7 @@ export default function rule(context: Context): void {
   }
 }
 
+Object.defineProperty(rule, "name", { value: "heading" });
+
 rule.appliesTo = (context: Context) =>
   context.frontMatter["page-type"].startsWith("javascript");

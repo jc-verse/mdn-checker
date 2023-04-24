@@ -206,6 +206,8 @@ export default function rule(context: Context): void {
   }
 }
 
+Object.defineProperty(rule, "name", { value: "class-members" });
+
 rule.appliesTo = (context: Context) =>
   ["javascript-class", "javascript-namespace"].includes(
     context.frontMatter["page-type"],

@@ -11,4 +11,6 @@ export default function rule(context: Context): void {
   });
 }
 
+Object.defineProperty(rule, "name", { value: "bad-dl" });
+
 rule.appliesTo = () => "all";

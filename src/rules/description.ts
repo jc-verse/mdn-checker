@@ -164,4 +164,6 @@ export default function rule(context: Context): void {
     context.report(`Description does not match pattern: ${re}`);
 }
 
+Object.defineProperty(rule, "name", { value: "description" });
+
 rule.appliesTo = () => "all";

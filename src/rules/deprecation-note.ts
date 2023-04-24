@@ -14,5 +14,7 @@ export default function rule(context: Context): void {
   }
 }
 
+Object.defineProperty(rule, "name", { value: "deprecation-note" });
+
 rule.appliesTo = (context: Context) =>
   context.frontMatter.status?.includes("deprecated");

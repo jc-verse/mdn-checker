@@ -144,5 +144,7 @@ export default function rule(context: Context): void {
   });
 }
 
+Object.defineProperty(rule, "name", { value: "syntax-section" });
+
 rule.appliesTo = (context: Context) =>
   context.ast.children.some(isSyntaxHeading);
