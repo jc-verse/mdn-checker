@@ -24,14 +24,20 @@ export default function rule(context: Context): void {
     valueSection[1]!.type !== "paragraph" ||
     (valueSection[2] &&
       (valueSection[2].type !== "callout" || valueSection[2].kind !== "Note"))
-  )
-    context.report("Unrecognized value section format");
-  else if (
+  ) {
+    if (
+      !["Error.prototype.stack", "Function: displayName"].includes(
+        context.frontMatter.title,
+      )
+    )
+      context.report("Unrecognized value section format");
+  } else if (
     !/\{\{js_property_attributes\([01], 0, [01]\)}}/.test(
       context.getSource(valueSection[1]!),
     )
-  )
+  ) {
     context.report("Value section must end in attributes table");
+  }
 }
 
 Object.defineProperty(rule, "name", { value: "data-prop" });

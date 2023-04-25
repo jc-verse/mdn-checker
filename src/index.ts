@@ -57,15 +57,19 @@ export class Context {
   source = "";
   ast!: Root;
   frontMatter!: FrontMatter;
+  #currentName = "";
   constructor(path: string, file: File) {
     this.path = path;
     Object.assign(this, file);
+  }
+  setName(name: string): void {
+    this.#currentName = name;
   }
   report(message: unknown): void {
     console.error(
       `\u001B]8;;${this.path}\u0007${this.frontMatter.title}\u001B]8;;\u0007: ${this.path}`,
     );
-    console.error(message);
+    console.error(`[${this.#currentName}]`, message);
   }
   getSource(node: Node, file: File = this): string {
     return file.source.slice(
@@ -116,6 +120,7 @@ export class Context {
 pathToFile.forEach((file, path) => {
   const context = new Context(path, file);
   rules.forEach(({ default: rule }) => {
+    context.setName(rule.name);
     if (rule.appliesTo(context)) rule(context);
   });
 });

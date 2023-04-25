@@ -1,6 +1,7 @@
 import nativeStringTag from "../data/native-to-string-tag.js";
 import inheritance from "../data/inheritance.js";
 import abstractClasses from "../data/abstract-classes.js";
+import stringHTMLMethods from "../data/string-html-methods.js";
 import namespaces from "../data/namespaces.js";
 import { editingSteps } from "../utils.js";
 import { toJSxRef as baseToJSxRef } from "../serializer/toJSxRef.js";
@@ -18,61 +19,69 @@ function adjustMembers(
   context: Context,
 ) {
   const objName = context.frontMatter.title;
-  if (
-    type === "Instance properties" &&
-    !["Iterator", "AsyncIterator", "Proxy", "Segments", ...namespaces].includes(
-      objName,
-    )
-  ) {
-    if (!["Object"].includes(objName)) {
-      members.push(
-        `{{jsxref("Object/constructor", "${objName}.prototype.constructor")}}`,
-      );
-    }
-    if (
-      !nativeStringTag.includes(objName) &&
-      !inheritance[objName]?.includes("TypedArray") &&
-      !inheritance[objName]?.includes("Error")
-    )
-      members.push(`\`${objName}.prototype[@@toStringTag]\``);
-    if (inheritance[objName]?.includes("Error"))
-      members.push(`{{jsxref("Error/name", "${objName}.prototype.name")}}`);
-  }
-  if (type === "Static properties" && namespaces.includes(objName))
-    members.push(`\`${objName}[@@toStringTag]\``);
-  if (
-    inheritance[objName]?.includes("TypedArray") &&
-    type === "Static properties"
-  ) {
-    members.push(
-      `{{jsxref("TypedArray/BYTES_PER_ELEMENT", "${objName}.BYTES_PER_ELEMENT")}}`,
-    );
-  } else if (
-    inheritance[objName]?.includes("TypedArray") &&
-    type === "Instance properties"
-  ) {
-    members.push(
-      `{{jsxref("TypedArray/BYTES_PER_ELEMENT", "${objName}.prototype.BYTES_PER_ELEMENT")}}`,
-    );
-  } else if (objName === "TypedArray" && type === "Instance properties") {
-    members.push(`{{jsxref("TypedArray.prototype.BYTES_PER_ELEMENT")}}`);
+  switch (type) {
+    case "Instance properties":
+      if (["Proxy", ...namespaces].includes(objName)) break;
+      if (
+        !["Object", "Segments", "Iterator", "AsyncIterator"].includes(objName)
+      ) {
+        members.push(
+          `{{jsxref("Object/constructor", "${objName}.prototype.constructor")}}`,
+        );
+      }
+      if (
+        !["Segments", ...nativeStringTag].includes(objName) &&
+        !inheritance[objName]?.includes("TypedArray") &&
+        !inheritance[objName]?.includes("Error")
+      )
+        members.push(`\`${objName}.prototype[@@toStringTag]\``);
+      if (inheritance[objName]?.includes("Error"))
+        members.push(`{{jsxref("Error/name", "${objName}.prototype.name")}}`);
+      if (inheritance[objName]?.includes("TypedArray")) {
+        members.push(
+          `{{jsxref("TypedArray/BYTES_PER_ELEMENT", "${objName}.prototype.BYTES_PER_ELEMENT")}}`,
+        );
+      }
+      if (objName === "TypedArray")
+        members.push(`{{jsxref("TypedArray.prototype.BYTES_PER_ELEMENT")}}`);
+      break;
+    case "Static properties":
+      if (namespaces.includes(objName))
+        members.push(`\`${objName}[@@toStringTag]\``);
+      if (inheritance[objName]?.includes("TypedArray")) {
+        members.push(
+          `{{jsxref("TypedArray/BYTES_PER_ELEMENT", "${objName}.BYTES_PER_ELEMENT")}}`,
+        );
+      }
   }
   members.sort((a, b) => {
     const aName =
       typeof a === "string"
         ? (a.match(/\{\{jsxref\((?:".*?", )?"(?<name>.*?)"/) ??
-            a.match(/`(?<name>).*`/))!.groups!.name!
-        : a.frontMatter.title.replace("get ", "");
+            a.match(/`(?<name>.*)`/))!.groups!.name!
+        : a.frontMatter.title;
     const bName =
       typeof b === "string"
         ? (b.match(/\{\{jsxref\((?:".*?", )?"(?<name>.*?)"/) ??
-            b.match(/`(?<name>).*`/))!.groups!.name!
-        : b.frontMatter.title.replace("get ", "");
-    if (!aName.match(/[.[]/) && bName.match(/[.[]/)) return 1;
-    if (aName.match(/[.[]/) && !bName.match(/[.[]/)) return -1;
-    if (aName.includes("@@") && !bName.includes("@@")) return 1;
-    if (!aName.includes("@@") && bName.includes("@@")) return -1;
-    return aName.localeCompare(bName);
+            b.match(/`(?<name>.*)`/))!.groups!.name!
+        : b.frontMatter.title;
+    const sortToEnd = (predicate: (name: string) => boolean): number =>
+      Number(predicate(aName)) - Number(predicate(bName));
+    return (
+      sortToEnd((name) =>
+        (stringHTMLMethods as (string | undefined)[]).includes(
+          name.match(/String.prototype.(?<name>.*)\(\)/)?.[1],
+        ),
+      ) ||
+      sortToEnd((name) => !/[.[]/.test(name)) ||
+      sortToEnd(
+        (name) =>
+          // BYTES_PER_ELEMENT is present on TypedArray subtypes
+          objName === "TypedArray" && name.endsWith("BYTES_PER_ELEMENT"),
+      ) ||
+      sortToEnd((name) => name.includes("@@")) ||
+      aName.localeCompare(bName, "en-US")
+    );
   });
 }
 
@@ -163,30 +172,39 @@ export default function rule(context: Context): void {
     const items = dls.flatMap((dl) => dl.children);
     if (dls.length !== 1) {
       if (
-        type !== "Instance properties" &&
-        !(type === "Instance methods" && objName === "String")
+        !(
+          type === "Instance properties" ||
+          (type === "Instance methods" && objName === "String") ||
+          (type === "Static properties" && objName === "TypedArray")
+        )
       )
         context.report(`${type} section should have one definition list`);
     }
     const actualTexts = items
       .filter((node) => node.type === "dt")
       .map((item) => context.getSource(item));
-    const expectedTexts = members.map(
-      (m) =>
-        toJSxRef(m) +
-        (typeof m === "string"
-          ? ""
-          : m.frontMatter.status
-              ?.map(
-                (s) =>
-                  ({
-                    experimental: " {{Experimental_Inline}}",
-                    deprecated: " {{Deprecated_Inline}}",
-                    "non-standard": " {{Non-standard_Inline}}",
-                  }[s]),
-              )
-              .join("") ?? ""),
-    );
+    const expectedTexts = members.map((m) => {
+      let ref = toJSxRef(m);
+      if (typeof m === "object" && m.frontMatter.status) {
+        ref = `${ref} ${m.frontMatter.status
+          .map(
+            (s) =>
+              ({
+                experimental: "{{Experimental_Inline}}",
+                deprecated: "{{Deprecated_Inline}}",
+                "non-standard": "{{Non-standard_Inline}}",
+              }[s]),
+          )
+          .join(" ")}`;
+      }
+      if (
+        (typeof m === "object" &&
+          ["Function: displayName"].includes(m.frontMatter.title)) ||
+        (typeof m === "string" && m.includes("WeakRef.prototype.constructor"))
+      )
+        ref = `${ref} {{Optional_Inline}}`;
+      return ref;
+    });
     const edits = editingSteps(actualTexts, expectedTexts);
     if (edits.length) {
       context.report(

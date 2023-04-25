@@ -17,4 +17,8 @@ export default function rule(context: Context): void {
 Object.defineProperty(rule, "name", { value: "deprecation-note" });
 
 rule.appliesTo = (context: Context) =>
-  context.frontMatter.status?.includes("deprecated");
+  context.frontMatter.status?.includes("deprecated") &&
+  // These pages have the note incorporated in the intro
+  !["Date.prototype.getYear()", "Date.prototype.setYear()"].includes(
+    context.frontMatter.title,
+  );

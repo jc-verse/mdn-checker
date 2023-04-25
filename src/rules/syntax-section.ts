@@ -121,7 +121,12 @@ export default function rule(context: Context): void {
       )
         context.report("TypedArray Exceptions incorrect");
     } else if (section.length !== 1 || section[0]!.type !== "dl") {
-      context.report("Exceptions section must be a single dl");
+      if (
+        !["eval()", "Generator.prototype.throw()", "await"].includes(
+          context.frontMatter.title,
+        )
+      )
+        context.report("Exceptions section must be a single dl");
     } else if (
       section[0].children.some(
         (n) =>
@@ -136,10 +141,14 @@ export default function rule(context: Context): void {
       section[0].children.some(
         (n) =>
           n.type === "dd" &&
-          !context.getSource(n).trim().startsWith("- : Thrown if"),
+          !/^- : Thrown (?:in \[strict mode\]\(\/en-US\/docs\/Web\/JavaScript\/Reference\/Strict_mode\) )?if/.test(
+            context.getSource(n).trim(),
+          ),
       )
     ) {
-      context.report("Exception description must start with 'Thrown if'");
+      context.report(
+        "Exception description must start with 'Thrown if' or 'Thrown in strict mode if'",
+      );
     }
   });
 }

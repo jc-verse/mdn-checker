@@ -1,8 +1,8 @@
 rules:
-  bad-dl: false
-  class-members: false
+  bad-dl: true
+  class-members: true
   data-prop: true
-  deprecation-note: false
-  description: false
+  deprecation-note: true
+  description: true
   heading: false
-  syntax-section: false
+  syntax-section: true

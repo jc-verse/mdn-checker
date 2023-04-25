@@ -100,6 +100,10 @@ const patterns: [(ctx: Context) => unknown, string][] = [
     escapeRegExp`${"^"}The **\`~name~\`** accessor property of ~clsRef~ instances returns whether or not the \`~flag~\` flag is used with this regular expression.${"$"}`,
   ],
   [
+    (ctx) => ctx.path.includes("/proto/"),
+    escapeRegExp`${"^"}The **\`__proto__\`** accessor property of ~clsRef~ instances exposes ${".*?"} this ~enCls~`,
+  ],
+  [
     (ctx) =>
       ctx.frontMatter["page-type"] === "javascript-instance-accessor-property",
     escapeRegExp`${"^"}The **\`~${"title.split('.').at(-1)"}~\`** accessor property of ~clsRef~ ~${"isPrimitive ? 'values' : 'instances'"}~ returns ${".*?"} this ~enCls~`,
