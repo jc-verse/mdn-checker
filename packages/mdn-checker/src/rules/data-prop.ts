@@ -1,5 +1,5 @@
 import type { Content, Heading } from "mdast";
-import type { Context } from "../index.js";
+import type { Context } from "../context.js";
 
 function isValueHeading(node: Content): node is Heading {
   return (

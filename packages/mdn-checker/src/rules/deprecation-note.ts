@@ -1,4 +1,4 @@
-import type { Context } from "../index.js";
+import type { Context } from "../context.js";
 
 export default function rule(context: Context): void {
   if (!/^.*\{\{Deprecated_Header}}/i.test(context.source))

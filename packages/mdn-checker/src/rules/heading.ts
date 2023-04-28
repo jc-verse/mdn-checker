@@ -1,5 +1,5 @@
 import { editingSteps } from "../utils.js";
-import type { Context } from "../index.js";
+import type { Context } from "../context.js";
 import type { Heading } from "mdast";
 
 type TOCTreeNode = { heading: string; children: TOCTreeNode[] };

@@ -12,7 +12,7 @@ yarn tsc
 ## Usage
 
 ```bash
-yarn run:check ../content
+yarn mdn-checker ../content
 ```
 
 where `../content` is the path to the MDN content repository.

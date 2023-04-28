@@ -1,5 +1,5 @@
 import { visit } from "unist-util-visit";
-import type { Context } from "../index.js";
+import type { Context } from "../context.js";
 
 export default function rule(context: Context): void {
   visit(context.ast, "listItem", (node) => {

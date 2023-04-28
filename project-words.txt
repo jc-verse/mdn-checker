@@ -8,3 +8,4 @@ subpages
 treeify
 unist
 unprefixed
+yarnpkg

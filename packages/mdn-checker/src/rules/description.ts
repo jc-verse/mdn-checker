@@ -3,7 +3,7 @@ import { interpolate, escapeRegExp, toEnglish } from "../utils.js";
 import { toJSxRef } from "../serializer/toJSxRef.js";
 import primitives from "../data/primitives.js";
 import inheritance from "../data/inheritance.js";
-import type { Context } from "../index.js";
+import type { Context } from "../context.js";
 
 const patterns: [(ctx: Context) => unknown, string][] = [
   // Static accessor properties

@@ -7,7 +7,7 @@ import { editingSteps } from "../utils.js";
 import { toJSxRef as baseToJSxRef } from "../serializer/toJSxRef.js";
 
 import type { Heading, DescriptionList } from "mdast";
-import type { Context } from "../index.js";
+import type { Context } from "../context.js";
 import type { File } from "../parser/index.js";
 
 const toJSxRef = (t: File | string) =>

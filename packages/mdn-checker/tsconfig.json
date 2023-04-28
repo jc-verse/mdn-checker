@@ -4,10 +4,7 @@
     "target": "esnext",
     "lib": ["esnext"],
     "rootDir": "./src",
-    "outDir": "./dist",
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "noFallthroughCasesInSwitch": false
+    "outDir": "./dist"
   },
   "ts-node": {
     "esm": true

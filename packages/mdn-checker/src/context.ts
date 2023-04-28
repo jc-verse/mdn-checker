@@ -1,5 +1,3 @@
-import "./polyfill.js";
-
 import FS from "node:fs/promises";
 import Path from "node:path";
 import { loadConfig } from "./config.js";
@@ -43,15 +41,11 @@ const [allRules, files, config] = await Promise.all([
   loadConfig(),
 ]);
 
-const rules = allRules.filter((rule) => config.rules[rule.default.name]);
+export const rules = allRules.filter((rule) => config.rules[rule.default.name]);
 
-const pathToFile = new Map(files);
+export const pathToFile = new Map(files);
 
 export class Context {
-  declare files: Map<string, File>;
-  static {
-    Context.prototype.files = pathToFile;
-  }
   static #descriptions = new Map<string, string>();
   path = "";
   source = "";
@@ -88,14 +82,14 @@ export class Context {
   ): ([string, File] | File)[] {
     const subpages: ([string, File] | File)[] = [];
     const basePath = Path.dirname(path ?? this.path);
-    for (const [p, file] of this.files) {
+    for (const [p, file] of pathToFile) {
       if (Path.dirname(Path.dirname(p)) === basePath)
         subpages.push(withPath ? [p, file] : file);
     }
     return subpages;
   }
   getFile(path: string): File | undefined {
-    return this.files.get(Path.resolve(javascriptPath, path, "index.md"));
+    return pathToFile.get(Path.resolve(javascriptPath, path, "index.md"));
   }
   getDescription(
     path: string = Path.dirname(Path.relative(javascriptPath, this.path)),
@@ -116,11 +110,3 @@ export class Context {
     return description;
   }
 }
-
-pathToFile.forEach((file, path) => {
-  const context = new Context(path, file);
-  rules.forEach(({ default: rule }) => {
-    context.setName(rule.name);
-    if (rule.appliesTo(context)) rule(context);
-  });
-});

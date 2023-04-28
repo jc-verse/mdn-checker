@@ -571,9 +571,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mdast@patch:@types/mdast@npm%3A3.0.11#./.yarn/patches/@types-mdast-npm-3.0.11-4765a259eb.patch::locator=mdn-checker%40workspace%3A.":
+"@types/mdast@patch:@types/mdast@npm%3A3.0.11#./.yarn/patches/@types-mdast-npm-3.0.11-4765a259eb.patch::locator=root-workspace-0b6124%40workspace%3A.":
   version: 3.0.11
-  resolution: "@types/mdast@patch:@types/mdast@npm%3A3.0.11#./.yarn/patches/@types-mdast-npm-3.0.11-4765a259eb.patch::version=3.0.11&hash=4d4037&locator=mdn-checker%40workspace%3A."
+  resolution: "@types/mdast@patch:@types/mdast@npm%3A3.0.11#./.yarn/patches/@types-mdast-npm-3.0.11-4765a259eb.patch::version=3.0.11&hash=4d4037&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@types/unist": "*"
   checksum: af76a6051f97af9ecbb3fe9ce009613b63b824c66a924225516d4e972233d7dad28b8db33c372f06fc990fd4bbaa11e74b917b5a42841de741ed42f2fbf07af2
@@ -2776,32 +2776,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mdn-checker@workspace:.":
+"mdn-checker@workspace:*, mdn-checker@workspace:packages/mdn-checker":
   version: 0.0.0-use.local
-  resolution: "mdn-checker@workspace:."
+  resolution: "mdn-checker@workspace:packages/mdn-checker"
   dependencies:
     "@types/node": ^18.16.2
-    "@typescript-eslint/eslint-plugin": ^5.59.1
-    "@typescript-eslint/parser": ^5.59.1
     core-js: ^3.30.1
-    cspell: ^6.31.1
-    eslint: ^8.39.0
-    eslint-config-jc: ^2.3.3
-    eslint-plugin-header: ^3.1.1
-    eslint-plugin-import: ^2.27.5
     front-matter: ^4.0.2
-    husky: ^8.0.3
-    lint-staged: ^13.2.2
     mdast-util-to-string: ^3.2.0
-    prettier: ^2.8.8
-    prettier-config-jc: ^2.3.0
     remark-gfm: ^3.0.1
     remark-parse: ^10.0.1
-    tsconfig-jc: ^2.3.0
-    typescript: ^5.0.4
     unified: ^10.1.2
     unist-util-visit: ^4.1.2
     zod: ^3.21.4
+  bin:
+    mdn-checker: ./dist/index.js
   languageName: unknown
   linkType: soft
 
@@ -3610,6 +3599,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"root-workspace-0b6124@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "root-workspace-0b6124@workspace:."
+  dependencies:
+    "@types/node": ^18.16.2
+    "@typescript-eslint/eslint-plugin": ^5.59.1
+    "@typescript-eslint/parser": ^5.59.1
+    cspell: ^6.31.1
+    eslint: ^8.39.0
+    eslint-config-jc: ^2.3.3
+    eslint-plugin-header: ^3.1.1
+    eslint-plugin-import: ^2.27.5
+    husky: ^8.0.3
+    lint-staged: ^13.2.2
+    mdn-checker: "workspace:*"
+    prettier: ^2.8.8
+    prettier-config-jc: ^2.3.0
+    tsconfig-jc: ^2.3.1
+    typescript: ^5.0.4
+  languageName: unknown
+  linkType: soft
+
 "run-parallel@npm:^1.1.9":
   version: 1.2.0
   resolution: "run-parallel@npm:1.2.0"
@@ -3911,10 +3922,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsconfig-jc@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "tsconfig-jc@npm:2.3.0"
-  checksum: 92de9920a468139e65af989404c0033893cd486d45c50f602bcc2ef6e4e65abdd7d7c1b4093840a7f2fe7cb6b6018da3d56d68f0929a08c3c357efcbe34e2405
+"tsconfig-jc@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "tsconfig-jc@npm:2.3.1"
+  checksum: 9dd62285428e23437aaf4be42d683d7aaa34780dd6c99fdea197ff689088ab798c0868bb27ad4d69d6d7995ea59c08139e81234ed1b07cd8fb61f5818b87dc99
   languageName: node
   linkType: hard
 

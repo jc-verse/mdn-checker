@@ -1,7 +1,7 @@
 import { interpolate } from "../utils.js";
 import inheritance from "../data/inheritance.js";
 import type { Content, Heading } from "mdast";
-import type { Context } from "../index.js";
+import type { Context } from "../context.js";
 
 function isSyntaxHeading(node: Content): node is Heading {
   return (
