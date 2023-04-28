@@ -18,6 +18,9 @@
   },
   "homepage": "https://jc-verse.github.io/mdn-checker/",
   "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "run:check": "node ./dist/index.js",
     "format": "prettier -w .",
     "lint": "eslint \"**/*.{js,ts,jsx,tsx}\"",
     "spellcheck": "cspell \"**\" --no-progress",

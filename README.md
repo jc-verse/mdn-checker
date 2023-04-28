@@ -5,10 +5,14 @@ Check MDN page structures
 ## Installation
 
 ```bash
-yarn tsc --watch
-node dist/index.js ../content
+yarn
+yarn tsc
 ```
 
 ## Usage
 
-## APIs
+```bash
+yarn run:check ../content
+```
+
+where `../content` is the path to the MDN content repository.
