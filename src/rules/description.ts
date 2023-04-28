@@ -2,6 +2,7 @@ import Path from "node:path";
 import { interpolate, escapeRegExp, toEnglish } from "../utils.js";
 import { toJSxRef } from "../serializer/toJSxRef.js";
 import primitives from "../data/primitives.js";
+import inheritance from "../data/inheritance.js";
 import type { Context } from "../index.js";
 
 const patterns: [(ctx: Context) => unknown, string][] = [
@@ -131,6 +132,57 @@ const patterns: [(ctx: Context) => unknown, string][] = [
   [
     (ctx) => ctx.path.includes("@@iterator"),
     escapeRegExp`${"^"}The **\`[@@iterator]()\`** method of ~clsRef~ ~${"cls === 'arguments' ? 'objects' : isPrimitive ? 'values' : 'instances'"}~ implements the [iterable protocol](/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) and allows ~${"cls === 'Iterator' ? 'built-in iterator' : enCls"}~~${"enCls.endsWith('`') ? ' objects' : 's'"}~ to be consumed by most syntaxes expecting iterables, such as the [spread syntax](/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax) and {{jsxref("Statements/for...of", "for...of")}} loops. It returns ${".*"}.${"$"}`,
+  ],
+  [
+    (ctx) => ctx.frontMatter["page-type"] === "javascript-instance-method",
+    // We have to replace an extra "\" in the title, which comes from escaping
+    // the title
+    // TODO: make this stricter: all pages should have the "of...instances" part
+    escapeRegExp`${"^"}The **\`~${"title.replace(/.*prototype(\\\\\\.)?/, '')"}~\`** method ${"(?:"}of ~clsRef~ ~${"isPrimitive ? 'values' : 'instances'"}~${"|(?!of))"}`,
+  ],
+  // Namespaces
+  [
+    (ctx) => ctx.frontMatter.title === "Intl",
+    escapeRegExp`${"^"}The **\`Intl\`** namespace object contains several constructors`,
+  ],
+  [
+    (ctx) => ctx.frontMatter["page-type"] === "javascript-namespace",
+    escapeRegExp`${"^"}The **\`~title~\`** namespace object contains static ${"(?:properties and )?"}methods for`,
+  ],
+  // Constructors
+  [
+    (ctx) => /(?<cls>symbol|bigint)\/\k<cls>/.test(ctx.path),
+    escapeRegExp`${"^"}The **\`~cls~()\`** function returns primitive values of type ~cls~.${"$"}`,
+  ],
+  [
+    (ctx) => /(?<cls>number|boolean|string)\/\k<cls>/.test(ctx.path),
+    escapeRegExp`${"^"}The **\`~cls~()\`** constructor creates {{jsxref("~cls~")}} objects. When called as a function, it returns primitive values of type ~cls~.${"$"}`,
+  ],
+  [
+    (ctx) => ctx.path.includes("/object/object/"),
+    escapeRegExp`${"^"}The **\`Object()\`** constructor`,
+  ],
+  [
+    (ctx) =>
+      inheritance[
+        /(?<cls>.+)\(\) constructor/.exec(ctx.frontMatter.title)?.groups!.cls ??
+          ""
+      ]?.includes("TypedArray"),
+    escapeRegExp`${"^"}The **\`~cls~()\`** constructor creates {{jsxref("~cls~")}} objects. The contents are initialized to \`0~${"cls.includes('Big') ? 'n' : ''"}~\`.${"$"}`,
+  ],
+  [
+    (ctx) => ctx.frontMatter["page-type"] === "javascript-constructor",
+    escapeRegExp`${"^"}The **\`~cls~()\`** constructor creates {{jsxref("~cls~")}} objects.`,
+  ],
+  // Functions
+  [
+    (ctx) => ctx.frontMatter["page-type"] === "javascript-function",
+    escapeRegExp`${"^"}The **\`~title~\`** function`,
+  ],
+  // Global properties
+  [
+    (ctx) => ctx.frontMatter["page-type"] === "javascript-global-property",
+    escapeRegExp`${"^"}The **\`~title~\`** global property`,
   ],
 ];
 
