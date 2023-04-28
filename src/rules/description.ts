@@ -8,7 +8,7 @@ import type { Context } from "../index.js";
 const patterns: [(ctx: Context) => unknown, string][] = [
   // Static accessor properties
   [
-    (ctx) => /(?:map|set)\/@@species/.test(ctx.path),
+    (ctx) => /(?:map|set)\/@@species/u.test(ctx.path),
     escapeRegExp`${"^"}The **\`~title~\`** static accessor property is an unused accessor property specifying how to copy \`~cls~\` objects.${"$"}`,
   ],
   [
@@ -18,7 +18,7 @@ const patterns: [(ctx: Context) => unknown, string][] = [
   ],
   [
     (ctx) => {
-      const res = /(?<base>.+) \((?<alias>\$.)\)/.exec(ctx.frontMatter.title);
+      const res = /(?<base>.+) \((?<alias>\$.)\)/u.exec(ctx.frontMatter.title);
       if (!res) return false;
       const { base, alias } = res.groups!;
       return {
@@ -83,7 +83,7 @@ const patterns: [(ctx: Context) => unknown, string][] = [
   [
     (ctx) => {
       const name =
-        /RegExp\/(?<name>dotAll|global|hasIndices|ignoreCase|multiline|sticky|unicode)/.exec(
+        /RegExp\/(?<name>dotAll|global|hasIndices|ignoreCase|multiline|sticky|unicode)/u.exec(
           ctx.frontMatter.slug,
         )?.groups!.name;
       if (!name) return false;
@@ -119,14 +119,14 @@ const patterns: [(ctx: Context) => unknown, string][] = [
     (ctx) => {
       if (ctx.frontMatter["page-type"] !== "javascript-instance-data-property")
         return false;
-      const propertyName = /[a-z]+: (?<name>[a-z]+)/i.exec(
+      const propertyName = /[a-z]+: (?<name>[a-z]+)/iu.exec(
         ctx.frontMatter.title,
       )?.groups!.name;
       if (!propertyName) return false;
       return { propertyName };
     },
     // cSpell:ignore aeiou
-    escapeRegExp`${"^"}The **\`~propertyName~\`** data property of ~${"/^[aeiou]/i.test(cls) ? 'an' : 'a'"}~ ~clsRef~ ~${"isPrimitive ? 'value' : 'instance'"}~`,
+    escapeRegExp`${"^"}The **\`~propertyName~\`** data property of ~${"/^[aeiou]/iu.test(cls) ? 'an' : 'a'"}~ ~clsRef~ ~${"isPrimitive ? 'value' : 'instance'"}~`,
   ],
   // Instance methods
   [
@@ -138,7 +138,7 @@ const patterns: [(ctx: Context) => unknown, string][] = [
     // We have to replace an extra "\" in the title, which comes from escaping
     // the title
     // TODO: make this stricter: all pages should have the "of...instances" part
-    escapeRegExp`${"^"}The **\`~${"title.replace(/.*prototype(\\\\\\.)?/, '')"}~\`** method ${"(?:"}of ~clsRef~ ~${"isPrimitive ? 'values' : 'instances'"}~${"|(?!of))"}`,
+    escapeRegExp`${"^"}The **\`~${"title.replace(/.*prototype(\\\\\\.)?/u, '')"}~\`** method ${"(?:"}of ~clsRef~ ~${"isPrimitive ? 'values' : 'instances'"}~${"|(?!of))"}`,
   ],
   // Namespaces
   [
@@ -151,11 +151,11 @@ const patterns: [(ctx: Context) => unknown, string][] = [
   ],
   // Constructors
   [
-    (ctx) => /(?<cls>symbol|bigint)\/\k<cls>/.test(ctx.path),
+    (ctx) => /(?<cls>symbol|bigint)\/\k<cls>/u.test(ctx.path),
     escapeRegExp`${"^"}The **\`~cls~()\`** function returns primitive values of type ~cls~.${"$"}`,
   ],
   [
-    (ctx) => /(?<cls>number|boolean|string)\/\k<cls>/.test(ctx.path),
+    (ctx) => /(?<cls>number|boolean|string)\/\k<cls>/u.test(ctx.path),
     escapeRegExp`${"^"}The **\`~cls~()\`** constructor creates {{jsxref("~cls~")}} objects. When called as a function, it returns primitive values of type ~cls~.${"$"}`,
   ],
   [
@@ -165,8 +165,8 @@ const patterns: [(ctx: Context) => unknown, string][] = [
   [
     (ctx) =>
       inheritance[
-        /(?<cls>.+)\(\) constructor/.exec(ctx.frontMatter.title)?.groups!.cls ??
-          ""
+        /(?<cls>.+)\(\) constructor/u.exec(ctx.frontMatter.title)?.groups!
+          .cls ?? ""
       ]?.includes("TypedArray"),
     escapeRegExp`${"^"}The **\`~cls~()\`** constructor creates {{jsxref("~cls~")}} objects. The contents are initialized to \`0~${"cls.includes('Big') ? 'n' : ''"}~\`.${"$"}`,
   ],

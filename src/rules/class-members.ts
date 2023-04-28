@@ -73,7 +73,7 @@ function adjustMembers(
           name.match(/String.prototype.(?<name>.*)\(\)/)?.[1],
         ),
       ) ||
-      sortToEnd((name) => !/[.[]/.test(name)) ||
+      sortToEnd((name) => !/[.[]/u.test(name)) ||
       sortToEnd(
         (name) =>
           // BYTES_PER_ELEMENT is present on TypedArray subtypes

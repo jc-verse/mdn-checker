@@ -131,7 +131,7 @@ export default function rule(context: Context): void {
       section[0].children.some(
         (n) =>
           n.type === "dt" &&
-          !/^\{\{jsxref\("(?:TypeError|RangeError|SyntaxError|ReferenceError|URIError)"\)}}$/.test(
+          !/^\{\{jsxref\("(?:TypeError|RangeError|SyntaxError|ReferenceError|URIError)"\)\}\}$/u.test(
             context.getSource(n).trim(),
           ),
       )
@@ -141,7 +141,7 @@ export default function rule(context: Context): void {
       section[0].children.some(
         (n) =>
           n.type === "dd" &&
-          !/^- : Thrown (?:in \[strict mode\]\(\/en-US\/docs\/Web\/JavaScript\/Reference\/Strict_mode\) )?if/.test(
+          !/^- : Thrown (?:in \[strict mode\]\(\/en-US\/docs\/Web\/JavaScript\/Reference\/Strict_mode\) )?if/u.test(
             context.getSource(n).trim(),
           ),
       )

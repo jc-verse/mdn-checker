@@ -41,7 +41,7 @@ export function interpolate(
 ): string {
   return text.replace(
     // eslint-disable-next-line prefer-named-capture-group
-    /~([^~]+)~/g,
+    /~([^~]+)~/gu,
     (match, p1) =>
       // eslint-disable-next-line no-new-func
       Function(
@@ -56,7 +56,7 @@ export function escapeRegExp(
   ...args: string[]
 ): string {
   if (typeof strings === "string")
-    return strings.replace(/[\^$\\.*+?()[\]{}|]/g, "\\$&");
+    return strings.replace(/[\^$\\.*+?()[\]{}|]/gu, "\\$&");
   return String.raw({ raw: strings.map((s) => escapeRegExp(s)) }, ...args);
 }
 

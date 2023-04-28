@@ -3,7 +3,7 @@ import type { Node } from "unist";
 
 export function toText(node: Node): string {
   return toString(node).replace(
-    /\{\{jsxref\((?:"[^'"]+", )?"(?<name>[^'"]+)"\)\}\}/g,
+    /\{\{jsxref\((?:"[^'"]+", )?"(?<name>[^'"]+)"\)\}\}/gu,
     "$<name>",
   );
 }

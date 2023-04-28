@@ -107,7 +107,7 @@ export class Context {
     const descriptionNode = file.ast.children.find(
       (node) =>
         node.type === "paragraph" &&
-        !/^\{\{.*\}\}$/.test(this.getSource(node, file)),
+        !/^\{\{.*\}\}$/u.test(this.getSource(node, file)),
     );
     if (!descriptionNode) return "";
     // TODO new lines should be removed from source

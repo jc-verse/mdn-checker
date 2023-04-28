@@ -28,13 +28,13 @@ function getArguments(frontMatter: FrontMatter): string[] {
     }
     case "javascript-instance-accessor-property":
     case "javascript-static-accessor-property": {
-      if (/ \(\$.\)$/.test(frontMatter.title)) {
+      if (/ \(\$.\)$/u.test(frontMatter.title)) {
         return [
           last(frontMatter.slug, 2).replaceAll("/", "."),
           frontMatter.title,
         ];
       }
-      if (/…/.test(frontMatter.title))
+      if (/…/u.test(frontMatter.title))
         return [last(frontMatter.slug, 2), frontMatter.title];
     }
     // Fallthrough
@@ -55,7 +55,7 @@ function getArguments(frontMatter: FrontMatter): string[] {
       if (frontMatter.title.includes(": ")) {
         return [
           last(frontMatter.slug, 2),
-          frontMatter.title.replace(/.*: /, ""),
+          frontMatter.title.replace(/.*: /u, ""),
         ];
       }
       return [frontMatter.title];

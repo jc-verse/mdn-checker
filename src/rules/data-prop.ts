@@ -32,7 +32,7 @@ export default function rule(context: Context): void {
     )
       context.report("Unrecognized value section format");
   } else if (
-    !/\{\{js_property_attributes\([01], 0, [01]\)}}/.test(
+    !/\{\{js_property_attributes\([01], 0, [01]\)\}\}/u.test(
       context.getSource(valueSection[1]!),
     )
   ) {
