@@ -1,4 +1,5 @@
 dirents
+eslintcache
 frontmatter
 jsxref
 mdast

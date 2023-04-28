@@ -1,6 +1,6 @@
 {
-  "name": "mdn-checker",
-  "description": "Check MDN page structures",
+  "name": "es-scrapper",
+  "description": "Scrape structured data from the ES spec",
   "version": "0.0.0",
   "author": "Joshua Chen <sidachen2003@gmail.com>",
   "license": "MIT",
@@ -17,19 +17,13 @@
     "url": "https://github.com/jc-verse/mdn-checker/issues"
   },
   "homepage": "https://jc-verse.github.io/mdn-checker/",
-  "bin": "./dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch"
+    "build": "tsc && yarn es:sync && yarn es:scrape",
+    "watch": "tsc --watch",
+    "es:sync": "ts-node ./src/sync.ts",
+    "es:scrape": "ts-node ./src/index.ts"
   },
   "dependencies": {
-    "core-js": "^3.30.1",
-    "front-matter": "^4.0.2",
-    "mdast-util-to-string": "^3.2.0",
-    "remark-gfm": "^3.0.1",
-    "remark-parse": "^10.0.1",
-    "unified": "^10.1.2",
-    "unist-util-visit": "^4.1.2",
-    "zod": "^3.21.4"
+    "cheerio": "^1.0.0-rc.12"
   }
 }
