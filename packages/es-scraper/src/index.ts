@@ -89,6 +89,10 @@ const errorTypes = $("#sec-native-error-types-used-in-this-standard dfn")
   .map((_, el) => $(el).text().replaceAll("%", ""))
   .get();
 
+function cleanID(id: string): string {
+  return id.replaceAll(/[.@]/g, "\\$&");
+}
+
 function buildTOC(root = $(":root > body")) {
   return root
     .children("emu-clause")
@@ -135,7 +139,7 @@ function parseParameters(title: string): [string, Parameters] {
 function makeMethod(s: Section): JSMethod {
   const attributes = getAttributes(s);
   const [name, parameters] = parseParameters(s.title);
-  const paras = $(`#${s.id.replaceAll(/[.@]/g, "\\$&")} > p`)
+  const paras = $(`#${cleanID(s.id)} > p`)
     .map((_, el) => $(el).text())
     .filter((_, text) => text.includes('The *"length"* property of this'))
     .get();
@@ -158,7 +162,7 @@ function makeConstructor(s: Section | undefined): JSConstructor | null {
     "Constructor section does not specify constructor",
   );
   const [name, parameters] = parseParameters(ctorMain!.title);
-  const paras = $(`#${s.id.replaceAll(/[.@]/g, "\\$&")} > ul > li`)
+  const paras = $(`#${cleanID(s.id)} > ul > li`)
     .map((_, el) => $(el).text())
     .filter((_, text) => text.includes('has a *"length"* property whose'))
     .get();
@@ -237,11 +241,29 @@ function makeClass(s: Section): JSClass {
   const prototypeProperties = makeProperties(protoPropSecs, false);
   const instanceMethods = makeProperties(protoPropSecs, true);
   const instanceProperties = instancePropSecs.map((t) => makeProperty(t));
+  const constructor = makeConstructor(ctorSection);
+  const funcLengthProp = staticProperties.findIndex((p) =>
+    p.name.endsWith("Function.length"),
+  );
+  if (funcLengthProp !== -1) {
+    staticProperties.splice(funcLengthProp, 1);
+    const para = $(
+      `#${cleanID(
+        staticPropSecs.find((p) => p.title.endsWith("Function.length"))!.id,
+      )} > p`,
+    )
+      .map((_, el) => $(el).text())
+      .get();
+    assert(para.length === 1);
+    constructor!.length = Number(
+      para[0]!.match(/with a value of (?<length>\d+)/u)!.groups!.length!,
+    );
+  }
   return {
     type: "class",
     name: s.title.replace(/ Objects| \(.*\)/gu, ""),
     global: false,
-    constructor: makeConstructor(ctorSection),
+    constructor,
     staticProperties,
     staticMethods,
     prototypeProperties,
@@ -259,7 +281,7 @@ function getSubsections(s: Section, pattern: RegExp) {
 }
 
 function getAttributes(s: Section): DataAttributes | undefined {
-  const paras = $(`#${s.id.replaceAll(/[.@]/g, "\\$&")} > p`)
+  const paras = $(`#${cleanID(s.id)} > p`)
     .map((_, el) => $(el).text())
     .filter((_, text) => text.includes("has the attributes"))
     .get();
