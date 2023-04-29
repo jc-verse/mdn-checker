@@ -30,14 +30,14 @@ type JSMethod = {
   type: "method";
   name: string;
   parameters: Parameters;
-  length?: number;
-  attributes?: DataAttributes;
+  length: number | undefined;
+  attributes: DataAttributes | undefined;
 };
 
 type JSConstructor = {
   type: "constructor";
   name: string;
-  length?: number;
+  length: number | undefined;
   parameters: Parameters;
 };
 
@@ -147,13 +147,7 @@ function makeMethod(s: Section): JSMethod {
     )!.groups!.length!;
     length = Number(explicitLength);
   }
-  return {
-    type: "method",
-    name,
-    parameters,
-    ...(attributes ? { attributes } : undefined),
-    ...(length !== undefined ? { length } : undefined),
-  };
+  return { type: "method", name, parameters, attributes, length };
 }
 
 function makeConstructor(s: Section | undefined): JSConstructor | null {
@@ -176,12 +170,7 @@ function makeConstructor(s: Section | undefined): JSConstructor | null {
     )!.groups!.length!;
     length = Number(explicitLength);
   }
-  return {
-    type: "constructor",
-    name,
-    parameters,
-    ...(length !== undefined ? { length } : undefined),
-  };
+  return { type: "constructor", name, parameters, length };
 }
 
 function makeProperty(s: Section): JSProperty {
@@ -269,12 +258,12 @@ function getSubsections(s: Section, pattern: RegExp) {
   );
 }
 
-function getAttributes(s: Section): DataAttributes | null {
+function getAttributes(s: Section): DataAttributes | undefined {
   const paras = $(`#${s.id.replaceAll(/[.@]/g, "\\$&")} > p`)
     .map((_, el) => $(el).text())
     .filter((_, text) => text.includes("has the attributes"))
     .get();
-  if (paras.length === 0) return null;
+  if (paras.length === 0) return undefined;
   assert(
     paras.length === 1,
     `Expected ${s.title} to have 1 attributes paragraph`,
@@ -411,10 +400,10 @@ assert(
   "Unexpected global object structure",
 );
 objects.push(
-  ...globals[0]!.children.map((s) => {
+  ...globals[0]!.children.map((s): JSGlobalProperty => {
     const section = getBareSection(s);
     return {
-      type: "global-property" as const,
+      type: "global-property",
       name: section.title,
       attributes: getAttributes(section)!,
     };
@@ -424,14 +413,9 @@ objects.push(
       (s.title === "URI Handling Functions"
         ? s.children.filter((t) => !/^[A-Z]/u.test(t.title))
         : [s]
-      ).map((t) => {
+      ).map((t): JSFunction => {
         const [name, parameters] = parseParameters(getBareSection(t).title);
-        return {
-          type: "function" as const,
-          name,
-          parameters,
-          global: true,
-        };
+        return { type: "function", name, parameters, global: true };
       }),
     )
     .flat(2),
