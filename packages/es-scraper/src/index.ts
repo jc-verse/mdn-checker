@@ -53,6 +53,7 @@ type JSClass = {
   type: "class";
   name: string;
   global: boolean;
+  extends: string | undefined;
   constructor: JSConstructor | null;
   staticProperties: JSProperty[];
   staticMethods: JSMethod[];
@@ -90,7 +91,7 @@ const errorTypes = $("#sec-native-error-types-used-in-this-standard dfn")
   .get();
 
 function cleanID(id: string): string {
-  return id.replaceAll(/[.@]/g, "\\$&");
+  return id.replaceAll(/[.@%]/g, "\\$&");
 }
 
 function buildTOC(root = $(":root > body")) {
@@ -201,8 +202,8 @@ function makeProperty(s: Section): JSProperty {
 }
 
 function makeNamespace(s: Section): JSNamespace {
-  let staticPropSecs = getSubsections(s, /Value Properties of/u);
-  let staticMethodSecs = getSubsections(s, /Function Properties of/u);
+  let staticPropSecs = getSubsections(s, /Value Properties of/u)[1];
+  let staticMethodSecs = getSubsections(s, /Function Properties of/u)[1];
   assert(staticPropSecs.every((p) => !p.title.endsWith(")")));
   assert(staticMethodSecs.every((p) => p.title.endsWith(")")));
   if (!staticPropSecs.length && !staticMethodSecs.length) {
@@ -222,11 +223,18 @@ function makeNamespace(s: Section): JSNamespace {
 }
 
 function makeClass(s: Section): JSClass {
-  const staticPropSecs = getSubsections(s, /Properties of .* Constructor/u);
-  const instancePropSecs = getSubsections(s, /Properties of .* Instances/u);
-  const protoPropSecs = getSubsections(s, /Properties of .* Prototype Object/u);
-  const ctorSection = s.children.find((c) =>
-    /The .* Constructor/u.test(c.title),
+  const [ctorPropSec, staticPropSecs] = getSubsections(
+    s,
+    /Properties of (?:.* Constructor|the %TypedArray% Intrinsic Object)/u,
+  );
+  const [, instancePropSecs] = getSubsections(s, /Properties of .* Instances/u);
+  const [protoSec, protoPropSecs] = getSubsections(
+    s,
+    /Properties of .* Prototype Object/u,
+  );
+  const [ctorSection] = getSubsections(
+    s,
+    /The (?:.* Constructor|%TypedArray% Intrinsic Object)/u,
   );
   assert(instancePropSecs.every((p) => !p.title.endsWith(")")));
   function makeProperties(sections: Section[], method: false): JSProperty[];
@@ -265,10 +273,27 @@ function makeClass(s: Section): JSClass {
       para[0]!.match(/with a value of (?<length>\d+)/u)!.groups!.length!,
     );
   }
+  const ctorProto = getPrototype(ctorPropSec);
+  const protoProto = getPrototype(protoSec);
+  function getExtends() {
+    if (
+      ctorProto === "%Function.prototype%" &&
+      protoProto === "%Object.prototype%"
+    )
+      return undefined;
+    if (ctorProto === "%Function.prototype%" && protoProto === "*null*")
+      return "null";
+    if (protoProto && ctorProto === protoProto.replace(".prototype", ""))
+      return ctorProto.replaceAll("%", "");
+    if (ctorProto === "%Function.prototype%" && !protoProto) return "N/A";
+    if (!ctorProto && protoProto) return protoProto;
+    throw new Error(`Unexpected extends: ${ctorProto}, ${protoProto}`);
+  }
   return {
     type: "class",
     name: s.title.replace(/ Objects| \(.*\)/gu, ""),
     global: false,
+    extends: getExtends(),
     constructor,
     staticProperties,
     staticMethods,
@@ -293,11 +318,8 @@ function makeGlobalProperty(s: Section): JSGlobalProperty {
 }
 
 function getSubsections(s: Section, pattern: RegExp) {
-  return (
-    s.children
-      .find((c) => pattern.test(c.title))
-      ?.children.map(getBareSection) ?? []
-  );
+  const section = s.children.find((c) => pattern.test(c.title));
+  return [section, section?.children.map(getBareSection) ?? []] as const;
 }
 
 function getAttributes(s: Section): DataAttributes | undefined {
@@ -316,6 +338,18 @@ function getAttributes(s: Section): DataAttributes | undefined {
   return `${attributes.writable === "true" ? "w" : ""}${
     attributes.enumerable === "true" ? "e" : ""
   }${attributes.configurable === "true" ? "c" : ""}`;
+}
+
+function getPrototype(s: Section | undefined): string | undefined {
+  if (!s) return undefined;
+  const paras = $(`#${cleanID(s.id)} > ul > li`)
+    .map((_, el) => $(el).text())
+    .filter((_, text) => text.includes("has a [[Prototype]] internal slot"))
+    .get();
+  assert(paras.length === 1, `Prototype not found for ${s.title}`);
+  return paras[0]!.match(
+    /has a \[\[Prototype\]\] internal slot whose value is (?<proto>%.*%|\*null\*)\./u,
+  )!.groups!.proto!;
 }
 
 function expandAbstractClass(
@@ -340,9 +374,9 @@ function expandAbstractClass(
     ...s,
     name: t,
     constructor: expandSection(s.constructor, t),
-    ...(Object.fromEntries(
+    ...Object.fromEntries(
       toExpand.map((k) => [k, s[k].map((p) => expandSection(p, t))]),
-    ) as Pick<JSClass, (typeof toExpand)[number]>),
+    ),
   }));
 }
 
@@ -354,7 +388,7 @@ const objects = toc
     toc.findIndex((s) => s.title === "Reflection") + 1,
   )
   .flatMap((s) => s.children)
-  .flatMap((s): Section[] => {
+  .flatMap((s) => {
     if (s.title === "Error Objects") {
       const endOfError =
         s.children.findIndex(
@@ -380,33 +414,24 @@ const objects = toc
         ) + 1;
       return [
         { ...s, children: s.children.slice(0, endOfTA) },
-        {
-          ...s,
-          title: "_TypedArray_",
-          children: s.children.slice(endOfTA),
-        },
+        { ...s, title: "_TypedArray_", children: s.children.slice(endOfTA) },
       ];
     } else if (s.title === "Object Objects") {
       const prototypeProps = s.children.findIndex(
         (t) => t.title === "Properties of the Object Prototype Object",
       );
       const prototypePropsSection = s.children[prototypeProps]!;
-      return [
-        {
-          ...s,
-          children: s.children.toSpliced(prototypeProps, 1, {
-            ...prototypePropsSection,
-            children: prototypePropsSection.children.flatMap((t) => {
-              switch (t.title) {
-                case "Legacy Object.prototype Accessor Methods":
-                  return t.children;
-                default:
-                  return [t];
-              }
-            }),
-          }),
-        },
-      ];
+      return {
+        ...s,
+        children: s.children.toSpliced(prototypeProps, 1, {
+          ...prototypePropsSection,
+          children: prototypePropsSection.children.flatMap((t) =>
+            t.title === "Legacy Object.prototype Accessor Methods"
+              ? t.children
+              : t,
+          ),
+        }),
+      };
     } else if (s.title === "Iteration") {
       return [
         s.children.find((t) => t.title === "The %IteratorPrototype% Object")!,
@@ -418,18 +443,15 @@ const objects = toc
       // No page for this
       return [];
     }
-    return [s];
+    return s;
   })
-  .map(
-    (s): JSGlobal =>
-      s.title.endsWith("Object") ? makeNamespace(s) : makeClass(s),
-  )
+  .map((s) => (s.title.endsWith("Object") ? makeNamespace(s) : makeClass(s)))
   .flatMap((s) => {
     if (s.name === "_TypedArray_")
       return expandAbstractClass(s as JSClass, "_TypedArray_", typedArrayTypes);
     else if (s.name === "_NativeError_ Object Structure")
       return expandAbstractClass(s as JSClass, "_NativeError_", errorTypes);
-    return [s];
+    return s;
   });
 
 const globals = toc.find((s) => s.title === "The Global Object")!.children;
@@ -447,7 +469,7 @@ objects.push(
     .flatMap((s) =>
       s.title === "URI Handling Functions"
         ? s.children.filter((t) => !/^[A-Z]/u.test(t.title))
-        : [s],
+        : s,
     )
     .map(makeFunction),
 );
