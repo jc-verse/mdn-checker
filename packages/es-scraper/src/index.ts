@@ -95,7 +95,7 @@ function cleanID(id: string): string {
 
 function buildTOC(root = $(":root > body")) {
   return root
-    .children("emu-clause")
+    .children("emu-clause, emu-annex")
     .map((_, el): Section => {
       const subRoot = $(el);
       return {
@@ -210,8 +210,8 @@ function makeNamespace(s: Section): JSNamespace {
     staticPropSecs = props.filter((p) => !p.title.endsWith(")"));
     staticMethodSecs = props.filter((p) => p.title.endsWith(")"));
   }
-  const staticProperties = staticPropSecs.map((t) => makeProperty(t));
-  const staticMethods = staticMethodSecs.map((t) => makeMethod(t));
+  const staticProperties = staticPropSecs.map(makeProperty);
+  const staticMethods = staticMethodSecs.map(makeMethod);
   return {
     type: "namespace",
     name: s.title.replace(/^The | Object$/gu, ""),
@@ -231,16 +231,22 @@ function makeClass(s: Section): JSClass {
   assert(instancePropSecs.every((p) => !p.title.endsWith(")")));
   function makeProperties(sections: Section[], method: false): JSProperty[];
   function makeProperties(sections: Section[], method: true): JSMethod[];
-  function makeProperties(sections: Section[], method: boolean) {
-    return sections
-      .filter((p) => p.title.endsWith(")") === method)
-      .map((t) => (method ? makeMethod : makeProperty)(t));
+  function makeProperties(
+    sections: Section[],
+    method: boolean,
+  ): JSProperty[] | JSMethod[] {
+    return (
+      sections
+        .filter((p) => p.title.endsWith(")") === method)
+        // @ts-expect-error: this is because of weak inference
+        .map(method ? makeMethod : makeProperty)
+    );
   }
   const staticProperties = makeProperties(staticPropSecs, false);
   const staticMethods = makeProperties(staticPropSecs, true);
   const prototypeProperties = makeProperties(protoPropSecs, false);
   const instanceMethods = makeProperties(protoPropSecs, true);
-  const instanceProperties = instancePropSecs.map((t) => makeProperty(t));
+  const instanceProperties = instancePropSecs.map(makeProperty);
   const constructor = makeConstructor(ctorSection);
   const funcLengthProp = staticProperties.findIndex((p) =>
     p.name.endsWith("Function.length"),
@@ -272,6 +278,20 @@ function makeClass(s: Section): JSClass {
   };
 }
 
+function makeFunction(s: Section): JSFunction {
+  const [name, parameters] = parseParameters(getBareSection(s).title);
+  return { type: "function", name, parameters, global: true };
+}
+
+function makeGlobalProperty(s: Section): JSGlobalProperty {
+  const section = getBareSection(s);
+  return {
+    type: "global-property",
+    name: section.title,
+    attributes: getAttributes(section)!,
+  };
+}
+
 function getSubsections(s: Section, pattern: RegExp) {
   return (
     s.children
@@ -298,6 +318,34 @@ function getAttributes(s: Section): DataAttributes | undefined {
   }${attributes.configurable === "true" ? "c" : ""}`;
 }
 
+function expandAbstractClass(
+  s: JSClass,
+  abstractName: string,
+  subclasses: string[],
+): JSGlobal[] {
+  const toExpand = [
+    "staticProperties",
+    "staticMethods",
+    "prototypeProperties",
+    "instanceMethods",
+  ] as const;
+  function expandSection<T extends { name: string } | null>(
+    p: T,
+    name: string,
+  ): T {
+    if (!p) return null as T;
+    return { ...p, name: p.name.replace(abstractName, name) };
+  }
+  return subclasses.map((t) => ({
+    ...s,
+    name: t,
+    constructor: expandSection(s.constructor, t),
+    ...(Object.fromEntries(
+      toExpand.map((k) => [k, s[k].map((p) => expandSection(p, t))]),
+    ) as Pick<JSClass, (typeof toExpand)[number]>),
+  }));
+}
+
 const toc = buildTOC();
 await FS.writeFile(generatedPath("toc.json"), JSON.stringify(toc, null, 2));
 const objects = toc
@@ -321,7 +369,7 @@ const objects = toc
       // The nativeErrorTypes are already extracted in errorTypes; they will be
       // backfilled later
       return [
-        { title: s.title, id: s.id, children: s.children.slice(0, endOfError) },
+        { ...s, children: s.children.slice(0, endOfError) },
         nativeErrorStructure!,
         ...otherErrors,
       ];
@@ -331,10 +379,10 @@ const objects = toc
           (t) => t.title === "Abstract Operations for TypedArray Objects",
         ) + 1;
       return [
-        { title: s.title, id: s.id, children: s.children.slice(0, endOfTA) },
+        { ...s, children: s.children.slice(0, endOfTA) },
         {
+          ...s,
           title: "_TypedArray_",
-          id: s.id,
           children: s.children.slice(endOfTA),
         },
       ];
@@ -345,11 +393,9 @@ const objects = toc
       const prototypePropsSection = s.children[prototypeProps]!;
       return [
         {
-          title: s.title,
-          id: s.id,
+          ...s,
           children: s.children.toSpliced(prototypeProps, 1, {
-            title: prototypePropsSection.title,
-            id: prototypePropsSection.id,
+            ...prototypePropsSection,
             children: prototypePropsSection.children.flatMap((t) => {
               switch (t.title) {
                 case "Legacy Object.prototype Accessor Methods":
@@ -379,36 +425,10 @@ const objects = toc
       s.title.endsWith("Object") ? makeNamespace(s) : makeClass(s),
   )
   .flatMap((s) => {
-    function expandAbstractClass(abstractName: string, name: string): JSGlobal {
-      if (s.type !== "class") throw new Error("Not a class");
-      const toExpand = [
-        "staticProperties",
-        "staticMethods",
-        "prototypeProperties",
-        "instanceMethods",
-      ] as const;
-      function expandSection<T extends { name: string } | null>(p: T): T {
-        if (!p) return null as T;
-        p = { ...p };
-        p.name = p.name.replace(abstractName, name);
-        return p;
-      }
-      return {
-        type: "class",
-        name,
-        global: s.global,
-        constructor: expandSection(s.constructor),
-        ...(Object.fromEntries(
-          toExpand.map((k) => [k, s[k].map(expandSection)]),
-        ) as Pick<JSClass, (typeof toExpand)[number]>),
-        instanceProperties: s.instanceProperties,
-      };
-    }
-    if (s.type !== "class") return [s];
     if (s.name === "_TypedArray_")
-      return typedArrayTypes.map((t) => expandAbstractClass("_TypedArray_", t));
+      return expandAbstractClass(s as JSClass, "_TypedArray_", typedArrayTypes);
     else if (s.name === "_NativeError_ Object Structure")
-      return errorTypes.map((t) => expandAbstractClass("_NativeError_", t));
+      return expandAbstractClass(s as JSClass, "_NativeError_", errorTypes);
     return [s];
   });
 
@@ -422,25 +442,14 @@ assert(
   "Unexpected global object structure",
 );
 objects.push(
-  ...globals[0]!.children.map((s): JSGlobalProperty => {
-    const section = getBareSection(s);
-    return {
-      type: "global-property",
-      name: section.title,
-      attributes: getAttributes(section)!,
-    };
-  }),
+  ...globals[0]!.children.map(makeGlobalProperty),
   ...globals[1]!.children
-    .map((s) =>
-      (s.title === "URI Handling Functions"
+    .flatMap((s) =>
+      s.title === "URI Handling Functions"
         ? s.children.filter((t) => !/^[A-Z]/u.test(t.title))
-        : [s]
-      ).map((t): JSFunction => {
-        const [name, parameters] = parseParameters(getBareSection(t).title);
-        return { type: "function", name, parameters, global: true };
-      }),
+        : [s],
     )
-    .flat(2),
+    .map(makeFunction),
 );
 globals[2]!.children.forEach((s) => {
   const title = getBareSection(s).title.replace(" ( . . . )", "");
@@ -454,6 +463,27 @@ globals[3]!.children.forEach((s) => {
   assert(obj?.type === "namespace", `${title} is not a namespace`);
   obj.global = true;
 });
+
+toc
+  .find((s) => s.title === "Additional ECMAScript Features for Web Browsers")!
+  .children.find((s) => s.title === "Additional Built-in Properties")!
+  .children.forEach((s) => {
+    const target = /Additional Properties of the (?<name>.*) Object/u.exec(
+      s.title,
+    )!.groups!.name!;
+    assert(
+      s.children.every((t) => t.title.endsWith(")")),
+      "Annex B must be all functions",
+    );
+    if (target === "Global") {
+      objects.push(...s.children.map(makeFunction));
+    } else {
+      const cls = target.replace(".prototype", "");
+      const obj = objects.find((o) => o.name === cls);
+      assert(obj?.type === "class", `${target} is not a class`);
+      obj.instanceMethods.push(...s.children.map(makeMethod));
+    }
+  });
 
 await FS.writeFile(
   generatedPath("data.json"),
