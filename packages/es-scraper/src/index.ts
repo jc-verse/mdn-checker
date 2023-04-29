@@ -30,12 +30,14 @@ type JSMethod = {
   type: "method";
   name: string;
   parameters: Parameters;
+  length?: number;
   attributes?: DataAttributes;
 };
 
 type JSConstructor = {
   type: "constructor";
   name: string;
+  length?: number;
   parameters: Parameters;
 };
 
@@ -69,6 +71,7 @@ type JSFunction = {
   type: "function";
   name: string;
   parameters: Parameters;
+  length?: number;
   global: boolean;
 };
 
@@ -132,21 +135,52 @@ function parseParameters(title: string): [string, Parameters] {
 function makeMethod(s: Section): JSMethod {
   const attributes = getAttributes(s);
   const [name, parameters] = parseParameters(s.title);
+  const paras = $(`#${s.id.replaceAll(/[.@]/g, "\\$&")} > p`)
+    .map((_, el) => $(el).text())
+    .filter((_, text) => text.includes('The *"length"* property of this'))
+    .get();
+  let length: number | undefined = undefined;
+  if (paras.length !== 0) {
+    assert(paras.length === 1);
+    const explicitLength = paras[0]!.match(
+      /The \*"length"\* property of this (?:method|function) is \*(?<length>\d+)\*/u,
+    )!.groups!.length!;
+    length = Number(explicitLength);
+  }
   return {
     type: "method",
     name,
     parameters,
     ...(attributes ? { attributes } : undefined),
+    ...(length !== undefined ? { length } : undefined),
   };
 }
 
 function makeConstructor(s: Section | undefined): JSConstructor | null {
   if (!s) return null;
-  const [name, parameters] = parseParameters(s.title);
+  const ctorMain = s.children[0];
+  assert(
+    ctorMain?.title.endsWith(")"),
+    "Constructor section does not specify constructor",
+  );
+  const [name, parameters] = parseParameters(ctorMain!.title);
+  const paras = $(`#${s.id.replaceAll(/[.@]/g, "\\$&")} > ul > li`)
+    .map((_, el) => $(el).text())
+    .filter((_, text) => text.includes('has a *"length"* property whose'))
+    .get();
+  let length: number | undefined = undefined;
+  if (paras.length !== 0) {
+    assert(paras.length === 1);
+    const explicitLength = paras[0]!.match(
+      /has a \*"length"\* property whose value is \*(?<length>\d+)\*/u,
+    )!.groups!.length!;
+    length = Number(explicitLength);
+  }
   return {
     type: "constructor",
     name,
     parameters,
+    ...(length !== undefined ? { length } : undefined),
   };
 }
 
@@ -173,20 +207,81 @@ function makeProperty(s: Section): JSProperty {
   };
 }
 
+function makeNamespace(s: Section): JSNamespace {
+  let staticPropSecs = getSubsections(s, /Value Properties of/u);
+  let staticMethodSecs = getSubsections(s, /Function Properties of/u);
+  assert(staticPropSecs.every((p) => !p.title.endsWith(")")));
+  assert(staticMethodSecs.every((p) => p.title.endsWith(")")));
+  if (!staticPropSecs.length && !staticMethodSecs.length) {
+    const props = s.children.map(getBareSection);
+    staticPropSecs = props.filter((p) => !p.title.endsWith(")"));
+    staticMethodSecs = props.filter((p) => p.title.endsWith(")"));
+  }
+  const staticProperties = staticPropSecs.map((t) => makeProperty(t));
+  const staticMethods = staticMethodSecs.map((t) => makeMethod(t));
+  return {
+    type: "namespace",
+    name: s.title.replace(/^The | Object$/gu, ""),
+    global: false,
+    staticProperties,
+    staticMethods,
+  };
+}
+
+function makeClass(s: Section): JSClass {
+  const staticPropSecs = getSubsections(s, /Properties of .* Constructor/u);
+  const instancePropSecs = getSubsections(s, /Properties of .* Instances/u);
+  const protoPropSecs = getSubsections(s, /Properties of .* Prototype Object/u);
+  const ctorSection = s.children.find((c) =>
+    /The .* Constructor/u.test(c.title),
+  );
+  assert(instancePropSecs.every((p) => !p.title.endsWith(")")));
+  function makeProperties(sections: Section[], method: false): JSProperty[];
+  function makeProperties(sections: Section[], method: true): JSMethod[];
+  function makeProperties(sections: Section[], method: boolean) {
+    return sections
+      .filter((p) => p.title.endsWith(")") === method)
+      .map((t) => (method ? makeMethod : makeProperty)(t));
+  }
+  const staticProperties = makeProperties(staticPropSecs, false);
+  const staticMethods = makeProperties(staticPropSecs, true);
+  const prototypeProperties = makeProperties(protoPropSecs, false);
+  const instanceMethods = makeProperties(protoPropSecs, true);
+  const instanceProperties = instancePropSecs.map((t) => makeProperty(t));
+  return {
+    type: "class",
+    name: s.title.replace(/ Objects| \(.*\)/gu, ""),
+    global: false,
+    constructor: makeConstructor(ctorSection),
+    staticProperties,
+    staticMethods,
+    prototypeProperties,
+    instanceMethods,
+    instanceProperties,
+  };
+}
+
+function getSubsections(s: Section, pattern: RegExp) {
+  return (
+    s.children
+      .find((c) => pattern.test(c.title))
+      ?.children.map(getBareSection) ?? []
+  );
+}
+
 function getAttributes(s: Section): DataAttributes | null {
   const paras = $(`#${s.id.replaceAll(/[.@]/g, "\\$&")} > p`)
-    .filter((_, el) => $(el).text().includes("has the attributes"))
+    .map((_, el) => $(el).text())
+    .filter((_, text) => text.includes("has the attributes"))
     .get();
   if (paras.length === 0) return null;
   assert(
     paras.length === 1,
     `Expected ${s.title} to have 1 attributes paragraph`,
   );
-  const attributes = $(paras[0])
-    .text()
-    .match(
-      /has the attributes \{ \[\[Writable\]\]: \*(?<writable>true|false)\*, \[\[Enumerable\]\]: \*(?<enumerable>true|false)\*, \[\[Configurable\]\]: \*(?<configurable>true|false)\* \}\./u,
-    )!.groups!;
+  const attributes = paras[0]!.match(
+    /has the attributes \{ \[\[Writable\]\]: \*(?<writable>true|false)\*, \[\[Enumerable\]\]: \*(?<enumerable>true|false)\*, \[\[Configurable\]\]: \*(?<configurable>true|false)\* \}\./u,
+  )!.groups!;
   return `${attributes.writable === "true" ? "w" : ""}${
     attributes.enumerable === "true" ? "e" : ""
   }${attributes.configurable === "true" ? "c" : ""}`;
@@ -200,7 +295,7 @@ const objects = toc
     toc.findIndex((s) => s.title === "Reflection") + 1,
   )
   .flatMap((s) => s.children)
-  .flatMap((s) => {
+  .flatMap((s): Section[] => {
     if (s.title === "Error Objects") {
       const endOfError =
         s.children.findIndex(
@@ -237,21 +332,24 @@ const objects = toc
         (t) => t.title === "Properties of the Object Prototype Object",
       );
       const prototypePropsSection = s.children[prototypeProps]!;
-      return {
-        title: s.title,
-        children: s.children.toSpliced(prototypeProps, 1, {
-          title: prototypePropsSection.title,
-          id: prototypePropsSection.id,
-          children: prototypePropsSection.children.flatMap((t) => {
-            switch (t.title) {
-              case "Legacy Object.prototype Accessor Methods":
-                return t.children;
-              default:
-                return [t];
-            }
+      return [
+        {
+          title: s.title,
+          id: s.id,
+          children: s.children.toSpliced(prototypeProps, 1, {
+            title: prototypePropsSection.title,
+            id: prototypePropsSection.id,
+            children: prototypePropsSection.children.flatMap((t) => {
+              switch (t.title) {
+                case "Legacy Object.prototype Accessor Methods":
+                  return t.children;
+                default:
+                  return [t];
+              }
+            }),
           }),
-        }),
-      };
+        },
+      ];
     } else if (s.title === "Iteration") {
       return [
         s.children.find((t) => t.title === "The %IteratorPrototype% Object")!,
@@ -265,72 +363,10 @@ const objects = toc
     }
     return [s];
   })
-  .map(({ title, children }): JSGlobal => {
-    function getSubsections(pattern: RegExp) {
-      return (
-        children
-          .find((c) => pattern.test(c.title))
-          ?.children.map(getBareSection) ?? []
-      );
-    }
-
-    if (title.endsWith("Object")) {
-      let staticPropertySections = getSubsections(/Value Properties of/u);
-      let staticMethodSections = getSubsections(/Function Properties of/u);
-      assert(staticPropertySections.every((p) => !p.title.endsWith(")")));
-      assert(staticMethodSections.every((p) => p.title.endsWith(")")));
-      if (!staticPropertySections.length && !staticMethodSections.length) {
-        const props = children.map(getBareSection);
-        staticPropertySections = props.filter((p) => !p.title.endsWith(")"));
-        staticMethodSections = props.filter((p) => p.title.endsWith(")"));
-      }
-      const staticProperties = staticPropertySections.map((s) =>
-        makeProperty(s),
-      );
-      const staticMethods = staticMethodSections.map((s) => makeMethod(s));
-      return {
-        type: "namespace",
-        name: title.replace(/^The | Object$/gu, ""),
-        global: false,
-        staticProperties,
-        staticMethods,
-      };
-    }
-    const staticPropSecs = getSubsections(/Properties of .* Constructor/u);
-    const instancePropSecs = getSubsections(/Properties of .* Instances/u);
-    const protoPropSecs = getSubsections(/Properties of .* Prototype Object/u);
-    const ctorSection = children.find((c) =>
-      /The .* Constructor/u.test(c.title),
-    )?.children[0];
-    assert(
-      ctorSection?.title.endsWith(")") ?? true,
-      "Constructor section does not specify constructor",
-    );
-    assert(instancePropSecs.every((p) => !p.title.endsWith(")")));
-    function makeProperties(sections: Section[], method: false): JSProperty[];
-    function makeProperties(sections: Section[], method: true): JSMethod[];
-    function makeProperties(sections: Section[], method: boolean) {
-      return sections
-        .filter((p) => p.title.endsWith(")") === method)
-        .map((s) => (method ? makeMethod : makeProperty)(s));
-    }
-    const staticProperties = makeProperties(staticPropSecs, false);
-    const staticMethods = makeProperties(staticPropSecs, true);
-    const prototypeProperties = makeProperties(protoPropSecs, false);
-    const instanceMethods = makeProperties(protoPropSecs, true);
-    const instanceProperties = instancePropSecs.map((s) => makeProperty(s));
-    return {
-      type: "class",
-      name: title.replace(/ Objects| \(.*\)/gu, ""),
-      global: false,
-      constructor: makeConstructor(ctorSection),
-      staticProperties,
-      staticMethods,
-      prototypeProperties,
-      instanceMethods,
-      instanceProperties,
-    };
-  })
+  .map(
+    (s): JSGlobal =>
+      s.title.endsWith("Object") ? makeNamespace(s) : makeClass(s),
+  )
   .flatMap((s) => {
     function expandAbstractClass(abstractName: string, name: string): JSGlobal {
       if (s.type !== "class") throw new Error("Not a class");
@@ -340,10 +376,8 @@ const objects = toc
         "prototypeProperties",
         "instanceMethods",
       ] as const;
-      function expandSection<T extends { name: string }>(
-        p: T | null,
-      ): T | null {
-        if (!p) return null;
+      function expandSection<T extends { name: string } | null>(p: T): T {
+        if (!p) return null as T;
         p = { ...p };
         p.name = p.name.replace(abstractName, name);
         return p;
