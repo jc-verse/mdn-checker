@@ -1563,9 +1563,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-scrapper@workspace:packages/es-scrapper":
+"es-scraper@workspace:packages/es-scraper":
   version: 0.0.0-use.local
-  resolution: "es-scrapper@workspace:packages/es-scrapper"
+  resolution: "es-scraper@workspace:packages/es-scraper"
   dependencies:
     cheerio: ^1.0.0-rc.12
   languageName: unknown

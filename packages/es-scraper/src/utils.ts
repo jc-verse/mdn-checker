@@ -8,8 +8,9 @@ export function assert(
   condition: unknown,
   message?: string,
 ): asserts condition {
-  if (!condition)
-    {throw new Error(
+  if (!condition) {
+    throw new Error(
       message ? `Assertion failed: ${message}` : "Assertion failed",
-    );}
+    );
+  }
 }

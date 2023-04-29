@@ -1,5 +1,5 @@
 {
-  "name": "es-scrapper",
+  "name": "es-scraper",
   "description": "Scrape structured data from the ES spec",
   "version": "0.0.0",
   "author": "Joshua Chen <sidachen2003@gmail.com>",
