@@ -10,54 +10,69 @@ type Section = {
   children: Section[];
 };
 
-type Property =
+type DataAttributes = `${"w" | ""}${"e" | ""}${"c" | ""}`;
+
+type JSProperty =
   | {
       type: "data-property";
       name: string;
-      writable: boolean;
-      enumerable: boolean;
-      configurable: boolean;
+      attributes: DataAttributes;
     }
   | {
       type: "accessor-property";
       name: string;
-      enumerable: boolean;
-      configurable: boolean;
-      get: boolean;
-      set: boolean;
+      attributes: `${"g" | ""}${"s" | ""}${"e" | ""}${"c" | ""}`;
     };
 
-type Global =
-  | {
-      type: "namespace";
-      name: string;
-      global: boolean;
-      staticProperties: Property[];
-      staticMethods: (string | Property)[];
-    }
-  | {
-      type: "class";
-      name: string;
-      global: boolean;
-      constructor: boolean;
-      staticProperties: Property[];
-      staticMethods: (string | Property)[];
-      prototypeProperties: Property[];
-      instanceMethods: (string | Property)[];
-      instanceProperties: Property[];
-    }
-  | {
-      type: "global-property";
-      name: string;
-      writable: boolean;
-      enumerable: boolean;
-      configurable: boolean;
-    }
-  | {
-      type: "function";
-      name: string;
-      global: boolean;
-    };
+type Parameters = { required: number; optional: number; rest: boolean };
+
+type JSMethod = {
+  type: "method";
+  name: string;
+  parameters: Parameters;
+  attributes?: DataAttributes;
+};
+
+type JSConstructor = {
+  type: "constructor";
+  name: string;
+  parameters: Parameters;
+};
+
+type JSNamespace = {
+  type: "namespace";
+  name: string;
+  global: boolean;
+  staticProperties: JSProperty[];
+  staticMethods: JSMethod[];
+};
+
+type JSClass = {
+  type: "class";
+  name: string;
+  global: boolean;
+  constructor: JSConstructor | null;
+  staticProperties: JSProperty[];
+  staticMethods: JSMethod[];
+  prototypeProperties: JSProperty[];
+  instanceMethods: JSMethod[];
+  instanceProperties: JSProperty[];
+};
+
+type JSGlobalProperty = {
+  type: "global-property";
+  name: string;
+  attributes: `${"w" | ""}${"e" | ""}${"c" | ""}`;
+};
+
+type JSFunction = {
+  type: "function";
+  name: string;
+  parameters: Parameters;
+  global: boolean;
+};
+
+type JSGlobal = JSNamespace | JSClass | JSGlobalProperty | JSFunction;
 
 const $ = await FS.readFile(generatedPath("spec.html")).then((content) =>
   Cheerio.load(content),
@@ -101,53 +116,64 @@ function getBareSection(section: Section): Section {
   return section;
 }
 
-function makeMethod(s: Section): string | Property {
+function parseParameters(title: string): [string, Parameters] {
+  const { name, parameters } = title
+    .replace(/(?<!,) /gu, "")
+    .match(/(?<name>.*)\((?<parameters>.*)\)/u)!.groups!;
+  const count = parameters!.split(",").length;
+  const optional = parameters!.split("[").length - 1;
+  const rest = parameters!.includes("...");
+  return [
+    `${name!}()`,
+    { required: count - optional - Number(rest), optional, rest },
+  ];
+}
+
+function makeMethod(s: Section): JSMethod {
   const attributes = getAttributes(s);
-  if (attributes === null) return s.title;
+  const [name, parameters] = parseParameters(s.title);
   return {
-    type: "data-property",
-    name: s.title,
-    ...attributes,
+    type: "method",
+    name,
+    parameters,
+    ...(attributes ? { attributes } : undefined),
   };
 }
 
-function makeProperty(s: Section): Property {
+function makeConstructor(s: Section | undefined): JSConstructor | null {
+  if (!s) return null;
+  const [name, parameters] = parseParameters(s.title);
+  return {
+    type: "constructor",
+    name,
+    parameters,
+  };
+}
+
+function makeProperty(s: Section): JSProperty {
   if (s.children.filter((t) => /^get |^set /.test(t.title)).length === 2) {
     return {
       type: "accessor-property",
-      name: s.title,
-      enumerable: false,
-      configurable: true,
-      get: true,
-      set: true,
+      name: s.title.replaceAll(" ", ""),
+      attributes: "gsc",
     };
   } else if (/^get |^set /.test(s.title)) {
     return {
       type: "accessor-property",
-      name: s.title.slice(4),
-      enumerable: false,
-      configurable: true,
-      get: /^get /.test(s.title),
-      set: /^set /.test(s.title),
+      name: s.title.slice(4).replaceAll(" ", ""),
+      attributes: `${/^get /.test(s.title) ? "g" : ""}${
+        /^set /.test(s.title) ? "s" : ""
+      }c`,
     };
   }
-  const attributes = getAttributes(s);
   return {
     type: "data-property",
-    name: s.title,
-    ...(attributes ?? {
-      writable: true,
-      enumerable: false,
-      configurable: true,
-    }),
+    name: s.title.replaceAll(" ", ""),
+    attributes: getAttributes(s) ?? "wc",
   };
 }
 
-function getAttributes(s: Section): {
-  writable: boolean;
-  enumerable: boolean;
-  configurable: boolean;
-} | null {
+function getAttributes(s: Section): DataAttributes | null {
   const paras = $(`#${s.id.replaceAll(/[.@]/g, "\\$&")} > p`)
     .filter((_, el) => $(el).text().includes("has the attributes"))
     .get();
@@ -161,11 +187,9 @@ function getAttributes(s: Section): {
     .match(
       /has the attributes \{ \[\[Writable\]\]: \*(?<writable>true|false)\*, \[\[Enumerable\]\]: \*(?<enumerable>true|false)\*, \[\[Configurable\]\]: \*(?<configurable>true|false)\* \}\./u,
     )!.groups!;
-  return {
-    writable: attributes.writable === "true",
-    enumerable: attributes.enumerable === "true",
-    configurable: attributes.configurable === "true",
-  };
+  return `${attributes.writable === "true" ? "w" : ""}${
+    attributes.enumerable === "true" ? "e" : ""
+  }${attributes.configurable === "true" ? "c" : ""}`;
 }
 
 const toc = buildTOC();
@@ -241,7 +265,7 @@ const objects = toc
     }
     return [s];
   })
-  .map(({ title, children }): Global => {
+  .map(({ title, children }): JSGlobal => {
     function getSubsections(pattern: RegExp) {
       return (
         children
@@ -260,8 +284,10 @@ const objects = toc
         staticPropertySections = props.filter((p) => !p.title.endsWith(")"));
         staticMethodSections = props.filter((p) => p.title.endsWith(")"));
       }
-      const staticProperties = staticPropertySections.map(makeProperty);
-      const staticMethods = staticMethodSections.map(makeMethod);
+      const staticProperties = staticPropertySections.map((s) =>
+        makeProperty(s),
+      );
+      const staticMethods = staticMethodSections.map((s) => makeMethod(s));
       return {
         type: "namespace",
         name: title.replace(/^The | Object$/gu, ""),
@@ -270,37 +296,34 @@ const objects = toc
         staticMethods,
       };
     }
-    const staticPropertySections = getSubsections(
-      /Properties of .* Constructor/u,
-    );
-    const instancePropertySections = getSubsections(
-      /Properties of .* Instances/u,
-    );
-    const prototypePropertySections = getSubsections(
-      /Properties of .* Prototype Object/u,
-    );
-    const constructor = children.some((c) =>
+    const staticPropSecs = getSubsections(/Properties of .* Constructor/u);
+    const instancePropSecs = getSubsections(/Properties of .* Instances/u);
+    const protoPropSecs = getSubsections(/Properties of .* Prototype Object/u);
+    const ctorSection = children.find((c) =>
       /The .* Constructor/u.test(c.title),
+    )?.children[0];
+    assert(
+      ctorSection?.title.endsWith(")") ?? true,
+      "Constructor section does not specify constructor",
     );
-    assert(instancePropertySections.every((p) => !p.title.endsWith(")")));
-    const staticProperties = staticPropertySections
-      .filter((p) => !p.title.endsWith(")"))
-      .map(makeProperty);
-    const staticMethods = staticPropertySections
-      .filter((p) => p.title.endsWith(")"))
-      .map(makeMethod);
-    const prototypeProperties = prototypePropertySections
-      .filter((p) => !p.title.endsWith(")"))
-      .map(makeProperty);
-    const instanceMethods = prototypePropertySections
-      .filter((p) => p.title.endsWith(")"))
-      .map(makeMethod);
-    const instanceProperties = instancePropertySections.map(makeProperty);
+    assert(instancePropSecs.every((p) => !p.title.endsWith(")")));
+    function makeProperties(sections: Section[], method: false): JSProperty[];
+    function makeProperties(sections: Section[], method: true): JSMethod[];
+    function makeProperties(sections: Section[], method: boolean) {
+      return sections
+        .filter((p) => p.title.endsWith(")") === method)
+        .map((s) => (method ? makeMethod : makeProperty)(s));
+    }
+    const staticProperties = makeProperties(staticPropSecs, false);
+    const staticMethods = makeProperties(staticPropSecs, true);
+    const prototypeProperties = makeProperties(protoPropSecs, false);
+    const instanceMethods = makeProperties(protoPropSecs, true);
+    const instanceProperties = instancePropSecs.map((s) => makeProperty(s));
     return {
       type: "class",
       name: title.replace(/ Objects| \(.*\)/gu, ""),
       global: false,
-      constructor,
+      constructor: makeConstructor(ctorSection),
       staticProperties,
       staticMethods,
       prototypeProperties,
@@ -309,7 +332,7 @@ const objects = toc
     };
   })
   .flatMap((s) => {
-    function expandAbstractClass(abstractName: string, name: string): Global {
+    function expandAbstractClass(abstractName: string, name: string): JSGlobal {
       if (s.type !== "class") throw new Error("Not a class");
       const toExpand = [
         "staticProperties",
@@ -317,24 +340,22 @@ const objects = toc
         "prototypeProperties",
         "instanceMethods",
       ] as const;
+      function expandSection<T extends { name: string }>(
+        p: T | null,
+      ): T | null {
+        if (!p) return null;
+        p = { ...p };
+        p.name = p.name.replace(abstractName, name);
+        return p;
+      }
       return {
         type: "class",
         name,
         global: s.global,
-        constructor: s.constructor,
+        constructor: expandSection(s.constructor),
         ...(Object.fromEntries(
-          toExpand.map((k) => [
-            k,
-            s[k].map((p) => {
-              if (typeof p === "string") return p.replace(abstractName, name);
-              p.name = p.name.replace(abstractName, name);
-              return p;
-            }),
-          ]),
-        ) as Pick<
-          Extract<Global, { type: "class" }>,
-          (typeof toExpand)[number]
-        >),
+          toExpand.map((k) => [k, s[k].map(expandSection)]),
+        ) as Pick<JSClass, (typeof toExpand)[number]>),
         instanceProperties: s.instanceProperties,
       };
     }
@@ -361,11 +382,7 @@ objects.push(
     return {
       type: "global-property" as const,
       name: section.title,
-      ...(getAttributes(section) ?? {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-      }),
+      attributes: getAttributes(section)!,
     };
   }),
   ...globals[1]!.children
@@ -373,11 +390,15 @@ objects.push(
       (s.title === "URI Handling Functions"
         ? s.children.filter((t) => !/^[A-Z]/u.test(t.title))
         : [s]
-      ).map((t) => ({
-        type: "function" as const,
-        name: getBareSection(t).title,
-        global: true,
-      })),
+      ).map((t) => {
+        const [name, parameters] = parseParameters(getBareSection(t).title);
+        return {
+          type: "function" as const,
+          name,
+          parameters,
+          global: true,
+        };
+      }),
     )
     .flat(2),
 );
