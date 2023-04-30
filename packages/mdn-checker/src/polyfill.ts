@@ -2,6 +2,7 @@
 import "core-js/actual/array/from-async.js";
 import "core-js/actual/array/group.js";
 import "core-js/actual/array/to-spliced.js";
+import "core-js/actual/set/difference.js";
 
 declare global {
   interface ArrayConstructor {
@@ -18,5 +19,8 @@ declare global {
       deleteCount: number,
       ...items: T[]
     ): T[];
+  }
+  interface Set<T> {
+    difference(other: Set<T>): Set<T>;
   }
 }

@@ -4,6 +4,7 @@ frontmatter
 jsxref
 mdast
 nolint
+specced
 subpage
 subpages
 treeify

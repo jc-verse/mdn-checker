@@ -1,14 +1,13 @@
 {
   "extends": "tsconfig-jc",
   "compilerOptions": {
+    "noEmit": true,
     "target": "esnext",
-    "lib": ["esnext", "dom"],
-    "rootDir": "./src",
-    "outDir": "./dist"
+    "lib": ["esnext", "dom"]
   },
   "ts-node": {
     "esm": true
   },
-  "include": ["src", "src/sync.ts"],
+  "include": ["src", "scripts"],
   "exclude": ["node_modules"]
 }

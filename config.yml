@@ -1,8 +1,9 @@
 rules:
-  bad-dl: true
-  class-members: true
-  data-prop: true
-  deprecation-note: true
-  description: true
+  bad-dl: false
+  class-members: false
+  data-prop: false
+  deprecation-note: false
+  description: false
   heading: false
-  syntax-section: true
+  spec-alignment: true
+  syntax-section: false

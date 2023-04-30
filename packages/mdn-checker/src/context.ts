@@ -31,11 +31,12 @@ const [allRules, files, config] = await Promise.all([
     // Load rules; each import() must take a literal to allow static analysis
     import("./rules/bad-dl.js"),
     import("./rules/class-members.js"),
+    import("./rules/data-prop.js"),
     import("./rules/deprecation-note.js"),
     import("./rules/description.js"),
     import("./rules/heading.js"),
+    import("./rules/spec-alignment.js"),
     import("./rules/syntax-section.js"),
-    import("./rules/data-prop.js"),
   ]),
   Array.fromAsync(getFiles(javascriptPath)),
   loadConfig(),
@@ -110,3 +111,15 @@ export class Context {
     return description;
   }
 }
+
+export const exitContext = new (class {
+  #currentName = "";
+  setName(name: string): void {
+    this.#currentName = name;
+  }
+  report(message: unknown): void {
+    console.error(`[${this.#currentName}]`, message);
+  }
+})();
+
+export type ExitContext = typeof exitContext;

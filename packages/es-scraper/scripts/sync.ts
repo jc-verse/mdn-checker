@@ -1,5 +1,5 @@
 import FS from "node:fs/promises";
-import { generatedPath } from "./utils.js";
+import { generatedPath } from "../src/utils.js";
 
 const revision = await FS.readFile(generatedPath("spec.html"), "utf-8");
 const oldSHA = revision.match(/<!-- REVISION: (?<sha>.*) -->/)!.groups!.sha!;

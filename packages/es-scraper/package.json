@@ -17,11 +17,14 @@
     "url": "https://github.com/jc-verse/mdn-checker/issues"
   },
   "homepage": "https://jc-verse.github.io/mdn-checker/",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
-    "build": "tsc && yarn es:sync && yarn es:scrape",
-    "watch": "tsc --watch",
-    "es:sync": "ts-node ./src/sync.ts",
-    "es:scrape": "ts-node ./src/index.ts"
+    "build": "tsc -p tsconfig.build.json && yarn es:sync && yarn es:scrape",
+    "watch": "tsc -p tsconfig.build.json --watch",
+    "es:sync": "ts-node ./scripts/sync.ts",
+    "es:scrape": "ts-node ./scripts/scrape.ts"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12"
