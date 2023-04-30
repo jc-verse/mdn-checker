@@ -208,7 +208,9 @@ function makeNamespace(s: Section): JSNamespace {
   assert(staticMethodSecs.every((p) => p.title.endsWith(")")));
   if (!staticPropSecs.length && !staticMethodSecs.length) {
     const props = s.children.map(getBareSection);
-    staticPropSecs = props.filter((p) => !p.title.endsWith(")"));
+    staticPropSecs = props.filter(
+      (p) => !/\)$|Abstract Operations|Objects$/.test(p.title),
+    );
     staticMethodSecs = props.filter((p) => p.title.endsWith(")"));
   }
   const staticProperties = staticPropSecs.map(makeProperty);
