@@ -27,6 +27,7 @@ export type JSConstructor = {
   name: string;
   length: number | undefined;
   parameters: Parameters;
+  usage: "call" | "construct" | "equivalent" | "different" | "none";
 };
 
 export type JSNamespace = {

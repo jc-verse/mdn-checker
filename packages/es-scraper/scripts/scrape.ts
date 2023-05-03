@@ -109,17 +109,37 @@ function makeConstructor(s: Section | undefined): JSConstructor | null {
   const [name, parameters] = parseParameters(ctorMain!.title);
   const paras = $(`#${cleanID(s.id)} > ul > li`)
     .map((_, el) => $(el).text())
-    .filter((_, text) => text.includes('has a *"length"* property whose'))
     .get();
   let length: number | undefined = undefined;
-  if (paras.length !== 0) {
-    assert(paras.length === 1);
-    const explicitLength = paras[0]!.match(
+  const paras1 = paras.filter((text) =>
+    text.includes('has a *"length"* property whose'),
+  );
+  if (paras1.length !== 0) {
+    assert(paras1.length === 1);
+    const explicitLength = paras1[0]!.match(
       /has a \*"length"\* property whose value is \*(?<length>\d+)\*/u,
     )!.groups!.length!;
     length = Number(explicitLength);
   }
-  return { type: "constructor", name, parameters, length };
+  function hasMention(text: string): boolean {
+    return paras.some((t) => t.includes(text));
+  }
+  function getUsage(): JSConstructor["usage"] {
+    // TODO https://github.com/tc39/ecma262/pull/3055
+    if (s!.title === "The RegExp constructor") return "different";
+    if (hasMention("is equivalent to the object creation expression"))
+      return "equivalent";
+    if (hasMention("is not intended to be called as a function"))
+      return "construct";
+    if (hasMention("will throw an error when invoked")) return "none";
+    assert(
+      hasMention("when called as a function"),
+      `Unknown usage: ${s!.title}`,
+    );
+    if (hasMention("when called as a constructor")) return "different";
+    return "call";
+  }
+  return { type: "constructor", name, parameters, length, usage: getUsage() };
 }
 
 function makeProperty(s: Section): JSProperty {
@@ -202,6 +222,7 @@ function makeClass(s: Section): JSClass {
   const instanceMethods = makeProperties(protoPropSecs, true);
   const instanceProperties = instancePropSecs.map(makeProperty);
   const constructor = makeConstructor(ctorSection);
+  // TODO: https://github.com/tc39/ecma262/pull/3054
   const funcLengthProp = staticProperties.findIndex((p) =>
     p.name.endsWith("Function.length"),
   );
