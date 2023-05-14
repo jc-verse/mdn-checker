@@ -112,15 +112,25 @@ rule.appliesTo = (context: Context) =>
   /global_objects\/(?!intl)/.test(context.path) &&
   !context.frontMatter.title.includes("handler.");
 
+const deliberateNoDocs = [
+  "Date.prototype.toGMTString()",
+  "String.prototype.trimLeft()",
+  "String.prototype.trimRight()",
+  "TypedArray() constructor",
+  "TypedArray.prototype.BYTES_PER_ELEMENT",
+];
+
 rule.onExit = (context: ExitContext) => {
   const unrecognized = documented.difference(specced);
   if (unrecognized.size) {
     context.report(`Unrecognized content pages:
 ${[...unrecognized].join("\n")}`);
   }
-  const undocumented = specced.difference(documented);
-  if (undocumented.size) {
+  const undocumented = [...specced.difference(documented)].filter(
+    (n) => !deliberateNoDocs.includes(JSON.parse(n).name),
+  );
+  if (undocumented.length) {
     context.report(`Undocumented specced APIs:
-${[...undocumented].join("\n")}}`);
+${undocumented.join("\n")}`);
   }
 };

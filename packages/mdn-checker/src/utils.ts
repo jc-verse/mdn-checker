@@ -60,6 +60,15 @@ export function escapeRegExp(
   return String.raw({ raw: strings.map((s) => escapeRegExp(s)) }, ...args);
 }
 
+export function printRegExp(pattern: RegExp): string {
+  return (
+    pattern.source
+      .replace(/(?<!\\)[\^$\\.*+?()[\]{}|]/gu, "\x1b[36m$&\x1b[39m")
+      // eslint-disable-next-line prefer-named-capture-group
+      .replace(/\\(.)/gu, "$1")
+  );
+}
+
 type Action = ["d", string] | ["i", string] | ["s", string, string];
 
 export function editingSteps(start: string[], end: string[]): Action[] {

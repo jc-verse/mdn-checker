@@ -126,7 +126,7 @@ function makeConstructor(s: Section | undefined): JSConstructor | null {
   }
   function getUsage(): JSConstructor["usage"] {
     // TODO https://github.com/tc39/ecma262/pull/3055
-    if (s!.title === "The RegExp constructor") return "different";
+    if (s!.title === "The RegExp Constructor") return "different";
     if (hasMention("is equivalent to the object creation expression"))
       return "equivalent";
     if (hasMention("is not intended to be called as a function"))

@@ -46,8 +46,9 @@ export const rules = allRules.filter((rule) => config.rules[rule.default.name]);
 
 export const pathToFile = new Map(files);
 
+const descriptions = new Map<string, string>();
+
 export class Context {
-  static #descriptions = new Map<string, string>();
   path = "";
   source = "";
   ast!: Root;
@@ -95,7 +96,7 @@ export class Context {
   getDescription(
     path: string = Path.dirname(Path.relative(javascriptPath, this.path)),
   ): string {
-    let description = Context.#descriptions.get(path);
+    let description = descriptions.get(path);
     if (description) return description;
     const file = this.getFile(path);
     if (!file) return "";
@@ -106,8 +107,8 @@ export class Context {
     );
     if (!descriptionNode) return "";
     // TODO new lines should be removed from source
-    description = this.getSource(descriptionNode).replaceAll("\n", " ");
-    Context.#descriptions.set(path, description);
+    description = this.getSource(descriptionNode, file).replaceAll("\n", " ");
+    descriptions.set(path, description);
     return description;
   }
 }
