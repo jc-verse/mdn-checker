@@ -6,7 +6,7 @@ function addSpecced(type: string, obj: string | { name: string }) {
   const name = typeof obj === "string" ? obj : obj.name;
   // We don't document .prototype, @@toStringTag, or constructor
   if (
-    /(?:\.prototype|\[@@toStringTag\]|(?<!Object\.prototype)\.constructor)$/.test(
+    /(?:(?<!prototype)\.prototype|\[@@toStringTag\]|(?<!Object\.prototype)\.constructor)$/.test(
       name,
     )
   )
@@ -118,6 +118,14 @@ const deliberateNoDocs = [
   "String.prototype.trimRight()",
   "TypedArray() constructor",
   "TypedArray.prototype.BYTES_PER_ELEMENT",
+  "GeneratorFunction: length",
+  "GeneratorFunction: name",
+  "GeneratorFunction: prototype",
+  "AsyncGeneratorFunction: length",
+  "AsyncGeneratorFunction: name",
+  "AsyncGeneratorFunction: prototype",
+  "AsyncFunction: length",
+  "AsyncFunction: name",
 ];
 
 rule.onExit = (context: ExitContext) => {

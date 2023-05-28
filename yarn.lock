@@ -512,6 +512,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mdn/browser-compat-data@npm:^5.2.57":
+  version: 5.2.57
+  resolution: "@mdn/browser-compat-data@npm:5.2.57"
+  checksum: bedff21a544f568495910777a04a0808246bc57505f29729767c85e99d9cb65df0d153b9acd6ba28d8bfb2b4061666531b41b72e990a1c85e5f1c621af95a602
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -2901,6 +2908,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "mdn-checker@workspace:packages/mdn-checker"
   dependencies:
+    "@mdn/browser-compat-data": ^5.2.57
     core-js: ^3.30.1
     front-matter: ^4.0.2
     mdast-util-to-string: ^3.2.0

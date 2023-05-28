@@ -193,7 +193,7 @@ function makeClass(s: Section): JSClass {
     s,
     /Properties of (?:.* Constructor|the %TypedArray% Intrinsic Object)/u,
   );
-  const [, instancePropSecs] = getSubsections(s, /Properties of .* Instances/u);
+  const [, instancePropSecs] = getSubsections(s, /.* Instances/u);
   const [protoSec, protoPropSecs] = getSubsections(
     s,
     /Properties of .* Prototype Object/u,
@@ -473,6 +473,14 @@ toc
       obj.instanceMethods.push(...s.children.map(makeMethod));
     }
   });
+
+if (
+  await FS.stat(generatedPath("data.json")).then(
+    () => true,
+    () => false,
+  )
+)
+  await FS.rename(generatedPath("data.json"), generatedPath("data-old.json"));
 
 await FS.writeFile(
   generatedPath("data.json"),
