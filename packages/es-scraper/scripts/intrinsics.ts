@@ -54,7 +54,7 @@ function makeMethod(s: Section): JSMethod {
     )!.groups!.length!;
     length = Number(explicitLength);
   }
-  return { type: "method", name, parameters, attributes, length };
+  return { type: "method", name, id: s.id, parameters, attributes, length };
 }
 
 function makeConstructor(s: Section | undefined): JSConstructor | null {
@@ -97,7 +97,14 @@ function makeConstructor(s: Section | undefined): JSConstructor | null {
     if (hasMention("when called as a constructor")) return "different";
     return "call";
   }
-  return { type: "constructor", name, parameters, length, usage: getUsage() };
+  return {
+    type: "constructor",
+    name,
+    id: s.id,
+    parameters,
+    length,
+    usage: getUsage(),
+  };
 }
 
 function makeProperty(s: Section): JSProperty {
@@ -105,12 +112,14 @@ function makeProperty(s: Section): JSProperty {
     return {
       type: "accessor-property",
       name: s.title.replaceAll(" ", ""),
+      id: s.id,
       attributes: "gsc",
     };
   } else if (/^get |^set /.test(s.title)) {
     return {
       type: "accessor-property",
       name: s.title.slice(4).replaceAll(" ", ""),
+      id: s.id,
       attributes: `${/^get /.test(s.title) ? "g" : ""}${
         /^set /.test(s.title) ? "s" : ""
       }c`,
@@ -119,6 +128,7 @@ function makeProperty(s: Section): JSProperty {
   return {
     type: "data-property",
     name: s.title.replaceAll(" ", ""),
+    id: s.id,
     attributes: getAttributes(s) ?? "wc",
   };
 }
@@ -140,6 +150,7 @@ function makeNamespace(s: Section): JSNamespace {
   return {
     type: "namespace",
     name: s.title.replace(/^The | Object$/gu, ""),
+    id: s.id,
     global: false,
     staticProperties,
     staticMethods,
@@ -217,6 +228,7 @@ function makeClass(s: Section): JSClass {
   return {
     type: "class",
     name: s.title.replace(/ Objects| \(.*\)/gu, ""),
+    id: s.id,
     global: false,
     extends: getExtends(),
     constructor,
@@ -230,7 +242,7 @@ function makeClass(s: Section): JSClass {
 
 function makeFunction(s: Section): JSFunction {
   const [name, parameters] = parseParameters(getBareSection(s).title);
-  return { type: "function", name, parameters, global: true };
+  return { type: "function", name, parameters, id: s.id, global: true };
 }
 
 function makeGlobalProperty(s: Section): JSGlobalProperty {
@@ -238,6 +250,7 @@ function makeGlobalProperty(s: Section): JSGlobalProperty {
   return {
     type: "global-property",
     name: section.title,
+    id: section.id,
     attributes: getAttributes(section)!,
   };
 }

@@ -35,10 +35,7 @@ export function collectEarlyErrors(toc: Section[]): EarlyErrorRecord {
           .split("\n")
           .map((s) => s.trim())
           .filter(Boolean)
-          .flatMap((rhs) => ({
-            lhs: line[0]!.trim(),
-            rhs,
-          }));
+          .flatMap((rhs) => ({ lhs: line[0]!.trim(), rhs }));
       });
       const content = children
         .slice(grammar + 1, grammars[i + 1])
