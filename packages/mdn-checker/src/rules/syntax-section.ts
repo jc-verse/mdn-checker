@@ -1,6 +1,6 @@
 import { escapeRegExp, interpolate, printRegExp } from "../utils.js";
 import inheritance from "../data/inheritance.js";
-import { getData, type JSConstructor } from "es-scraper";
+import { getIntrinsics, type JSConstructor } from "es-scraper";
 import type { Content, Heading } from "mdast";
 import type { Context } from "../context.js";
 
@@ -12,7 +12,7 @@ function isSyntaxHeading(node: Content): node is Heading {
   );
 }
 
-const data = await getData();
+const intrinsics = await getIntrinsics();
 
 const notePatterns: Record<JSConstructor["usage"], string> = {
   equivalent: escapeRegExp(
@@ -34,14 +34,15 @@ const notePatterns: Record<JSConstructor["usage"], string> = {
 };
 
 function selectNotePattern(ctor: string): string {
-  if (["Intl.DateTimeFormat", "Intl.NumberFormat"].includes(ctor))
-    {return escapeRegExp(
+  if (["Intl.DateTimeFormat", "Intl.NumberFormat"].includes(ctor)) {
+    return escapeRegExp(
       "`~ctor~()` can be called with or without [`new`](/en-US/docs/Web/JavaScript/Reference/Operators/new). Both create a new `~ctor~` instance. However, there's a special behavior when it's called without `new` and the `this` value is another `~ctor~` instance; see [Return value](#return_value).",
-    );}
+    );
+  }
   if (ctor === "Intl.Collator") return notePatterns.equivalent;
   if (ctor.startsWith("Intl")) return notePatterns.construct;
   if (ctor === "InternalError") return notePatterns.equivalent;
-  const target = data.find((o) => o.name === ctor);
+  const target = intrinsics.find((o) => o.name === ctor);
   if (!target || target.type !== "class")
     throw new Error(`${ctor} is not a known global class`);
   return notePatterns[target.constructor!.usage];

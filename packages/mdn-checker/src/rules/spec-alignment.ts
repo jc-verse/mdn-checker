@@ -1,4 +1,4 @@
-import { getData } from "es-scraper";
+import { getIntrinsics } from "es-scraper";
 import type { Context, ExitContext } from "../context.js";
 
 const specced = new Set<string>();
@@ -30,9 +30,9 @@ function addSpecced(type: string, obj: string | { name: string }) {
   );
 }
 
-const data = await getData();
+const intrinsics = await getIntrinsics();
 
-data.forEach((o) => {
+intrinsics.forEach((o) => {
   switch (o.type) {
     case "namespace":
       if (o.name === "%IteratorPrototype%") {
