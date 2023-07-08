@@ -26,6 +26,7 @@
     "mdn-checker": "workspace:*",
     "prettier": "^2.8.8",
     "prettier-config-jc": "^2.3.0",
+    "ts-node": "^10.9.1",
     "tsconfig-jc": "^2.3.1",
     "typescript": "^5.0.4"
   },
