@@ -16,7 +16,7 @@ const { sha: newSHA } = await fetch(
 ).then((res) => res.json());
 
 try {
-  const revision = await FS.readFile(generatedPath("spec.html"), "utf-8");
+  const revision = await FS.readFile(specFilePath, "utf-8");
   const oldSHA = revision.match(/<!-- REVISION: (?<sha>.*) -->/)!.groups!.sha!;
   if (oldSHA === newSHA) {
     console.log("No new changes found. Exiting.");
