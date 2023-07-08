@@ -31,6 +31,6 @@ try {
   await FS.mkdir(generatedPath(""));
 }
 
-await FS.writeFile(specFilePath, `<!-- REVISION: ${newSHA} -->\n${data}`);
+await FS.writeFile(generatedPath("spec.html"), `<!-- REVISION: ${newSHA} -->\n${data}`);
 
 console.log(`Download complete! Saved to ${specFilePath}.`);
