@@ -1,5 +1,4 @@
 import FS from "node:fs/promises";
-import path from "node:path";
 import { generatedPath } from "../src/utils.js";
 
 const { sha: newSHA } = await fetch(
@@ -10,14 +9,14 @@ try {
   const revision = await FS.readFile(generatedPath("spec.html"), "utf-8");
   const oldSHA = revision.match(/<!-- REVISION: (?<sha>.*) -->/)!.groups!.sha!;
   if (oldSHA === newSHA) {
-    console.log("No new changes were found. Exiting.");
+    console.log("No new changes found. Exiting.");
     process.exit(0);
   } else {
-    console.log("New version detected, downloading...");
+    console.log("New version detected. Downloading...");
   }
 } catch (e) {
   // If we couldn't read the old file, continue
-  console.log("No existing spec.html detected, downloading...");
+  console.log("No existing spec.html detected. Downloading...");
 }
 
 // Cannot use the API endpoint because the file is too big
@@ -25,13 +24,11 @@ const data = await fetch(
   "https://raw.githubusercontent.com/tc39/ecma262/main/spec.html",
 ).then((res) => res.text());
 
-const specFilePath = generatedPath("spec.html");
-
 try {
-  await FS.access(path.dirname(specFilePath));
+  await FS.access(generatedPath(""));
 } catch (e) {
   // If the folder does not exist, create it
-  await FS.mkdir(path.dirname(specFilePath));
+  await FS.mkdir(generatedPath(""));
 }
 
 await FS.writeFile(specFilePath, `<!-- REVISION: ${newSHA} -->\n${data}`);

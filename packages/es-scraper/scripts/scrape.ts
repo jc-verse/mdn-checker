@@ -16,7 +16,7 @@ export const $ = await FS.readFile(generatedPath("spec.html"))
   .then((content) => Cheerio.load(content))
   .catch(() => {
     console.error(
-      "Could not read ../generated/spec.html file.  You may have to run 'yarn es:sync' to download it.",
+      "Could not read ../generated/spec.html file. You may have to run 'yarn es:sync' to download it.",
     );
     process.exit(0);
   });
