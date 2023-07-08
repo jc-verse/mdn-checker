@@ -8,9 +8,6 @@ try {
   oldSHA = revision.match(/<!-- REVISION: (?<sha>.*) -->/)!.groups!.sha!;
 } catch (e) {
   // If we couldn't read the old file, continue
-  console.warn(
-    "Could not read existing spec.html file; it may be missing. Downloading new version.",
-  );
 }
 const { sha: newSHA } = await fetch(
   "https://api.github.com/repos/tc39/ecma262/commits/main",
