@@ -25,6 +25,13 @@ const data = await fetch(
   "https://raw.githubusercontent.com/tc39/ecma262/main/spec.html",
 ).then((res) => res.text());
 
+try {
+  await FS.access(generatedPath(""));
+} catch (e) {
+  // If the folder does not exist, create it
+  await FS.mkdir(generatedPath(""));
+}
+
 await FS.writeFile(
   generatedPath("spec.html"),
   `<!-- REVISION: ${newSHA} -->\n${data}`,
