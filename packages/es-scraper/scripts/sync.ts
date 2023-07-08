@@ -16,7 +16,7 @@ const { sha: newSHA } = await fetch(
   "https://api.github.com/repos/tc39/ecma262/commits/main",
 ).then((res) => res.json());
 if (oldSHA === newSHA) {
-  console.log("No new changes");
+  console.log("No new changes were found. Exiting.");
   process.exit(0);
 }
 
