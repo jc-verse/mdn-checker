@@ -12,9 +12,14 @@ export type Section = {
   children: Section[];
 };
 
-export const $ = await FS.readFile(generatedPath("spec.html")).then((content) =>
-  Cheerio.load(content),
-);
+export const $ = await FS.readFile(generatedPath("spec.html"))
+  .then((content) => Cheerio.load(content))
+  .catch(() => {
+    console.error(
+      "Could not read ../generated/spec.html file.  You may have to run 'yarn es:sync' to download it.",
+    );
+    process.exit(0);
+  });
 
 function buildTOC(root = $(":root > body")) {
   return root
