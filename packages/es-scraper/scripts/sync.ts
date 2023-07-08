@@ -1,8 +1,17 @@
 import FS from "node:fs/promises";
 import { generatedPath } from "../src/utils.js";
 
-const revision = await FS.readFile(generatedPath("spec.html"), "utf-8");
-const oldSHA = revision.match(/<!-- REVISION: (?<sha>.*) -->/)!.groups!.sha!;
+let oldSHA = null;
+
+try {
+  const revision = await FS.readFile(generatedPath("spec.html"), "utf-8");
+  oldSHA = revision.match(/<!-- REVISION: (?<sha>.*) -->/)!.groups!.sha!;
+} catch (e) {
+  // If we couldn't read the old file, continue
+  console.warn(
+    "Could not read existing spec.html file; it may be missing. Downloading new version.",
+  );
+}
 const { sha: newSHA } = await fetch(
   "https://api.github.com/repos/tc39/ecma262/commits/main",
 ).then((res) => res.json());
