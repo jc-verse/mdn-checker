@@ -24,7 +24,7 @@ try {
   } else {
     console.log("New version detected. Downloading...");
   }
-} catch (e) {
+} catch {
   // If we couldn't read the old file, continue
   console.log("No existing spec.html detected. Downloading...");
 }
