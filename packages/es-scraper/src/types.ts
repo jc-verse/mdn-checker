@@ -49,7 +49,7 @@ export type JSClass = {
   id: string;
   global: boolean;
   extends: string | undefined;
-  constructor: JSConstructor | null;
+  classConstructor: JSConstructor | null;
   staticProperties: JSProperty[];
   staticMethods: JSMethod[];
   prototypeProperties: JSProperty[];
