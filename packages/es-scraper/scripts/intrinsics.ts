@@ -190,7 +190,7 @@ function makeClass(s: Section): JSClass {
   const prototypeProperties = makeProperties(protoPropSecs, false);
   const instanceMethods = makeProperties(protoPropSecs, true);
   const instanceProperties = instancePropSecs.map(makeProperty);
-  const classConstructor = makeConstructor(ctorSection);
+  const ctor = makeConstructor(ctorSection);
   // TODO: https://github.com/tc39/ecma262/pull/3054
   const funcLengthProp = staticProperties.findIndex((p) =>
     p.name.endsWith("Function.length"),
@@ -205,7 +205,7 @@ function makeClass(s: Section): JSClass {
       .map((_, el) => $(el).text())
       .get();
     assert(para.length === 1);
-    classConstructor!.length = Number(
+    ctor!.length = Number(
       para[0]!.match(/with a value of (?<length>\d+)/u)!.groups!.length!,
     );
   }
@@ -231,7 +231,7 @@ function makeClass(s: Section): JSClass {
     id: s.id,
     global: false,
     extends: getExtends(),
-    classConstructor,
+    ctor,
     staticProperties,
     staticMethods,
     prototypeProperties,
