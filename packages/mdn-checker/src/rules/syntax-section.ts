@@ -45,7 +45,7 @@ function selectNotePattern(ctor: string): string {
   const target = intrinsics.find((o) => o.name === ctor);
   if (!target || target.type !== "class")
     throw new Error(`${ctor} is not a known global class`);
-  return notePatterns[target.constructor!.usage];
+  return notePatterns[target.ctor!.usage];
 }
 
 const typedArrayCtors = Object.keys(inheritance).filter((k) =>

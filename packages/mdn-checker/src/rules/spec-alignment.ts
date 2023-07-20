@@ -67,8 +67,7 @@ intrinsics.forEach((o) => {
       break;
     case "class":
       addSpecced("class", o);
-      if (o.constructor)
-        addSpecced("constructor", `${o.constructor.name} constructor`);
+      if (o.ctor) addSpecced("constructor", `${o.ctor.name} constructor`);
       o.instanceMethods.forEach(addSpecced.bind(null, "instance-method"));
       o.prototypeProperties.forEach((p) => {
         if (p.type === "accessor-property")

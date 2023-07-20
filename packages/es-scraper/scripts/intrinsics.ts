@@ -68,23 +68,10 @@ function makeConstructor(s: Section | undefined): JSConstructor | null {
   const paras = $(`#${cleanID(s.id)} > ul > li`)
     .map((_, el) => $(el).text())
     .get();
-  let length: number | undefined = undefined;
-  const paras1 = paras.filter((text) =>
-    text.includes('has a *"length"* property whose'),
-  );
-  if (paras1.length !== 0) {
-    assert(paras1.length === 1);
-    const explicitLength = paras1[0]!.match(
-      /has a \*"length"\* property whose value is \*(?<length>\d+)\*/u,
-    )!.groups!.length!;
-    length = Number(explicitLength);
-  }
   function hasMention(text: string): boolean {
     return paras.some((t) => t.includes(text));
   }
   function getUsage(): JSConstructor["usage"] {
-    // TODO https://github.com/tc39/ecma262/pull/3055
-    if (s!.title === "The RegExp Constructor") return "different";
     if (hasMention("is equivalent to the object creation expression"))
       return "equivalent";
     if (hasMention("is not intended to be called as a function"))
@@ -102,7 +89,8 @@ function makeConstructor(s: Section | undefined): JSConstructor | null {
     name,
     id: s.id,
     parameters,
-    length,
+    // To be populated later
+    length: undefined,
     usage: getUsage(),
   };
 }
@@ -191,23 +179,17 @@ function makeClass(s: Section): JSClass {
   const instanceMethods = makeProperties(protoPropSecs, true);
   const instanceProperties = instancePropSecs.map(makeProperty);
   const ctor = makeConstructor(ctorSection);
-  // TODO: https://github.com/tc39/ecma262/pull/3054
-  const funcLengthProp = staticProperties.findIndex((p) =>
-    p.name.endsWith("Function.length"),
-  );
-  if (funcLengthProp !== -1) {
-    staticProperties.splice(funcLengthProp, 1);
-    const para = $(
-      `#${cleanID(
-        staticPropSecs.find((p) => p.title.endsWith("Function.length"))!.id,
-      )} > p`,
-    )
+  if (ctorPropSec) {
+    assert(ctor);
+    const ctorLengthProp = $(`#${cleanID(ctorPropSec.id)} > ul > li`)
       .map((_, el) => $(el).text())
+      .filter((_, text) => text.includes('has a *"length"* property'))
       .get();
-    assert(para.length === 1);
-    ctor!.length = Number(
-      para[0]!.match(/with a value of (?<length>\d+)/u)!.groups!.length!,
-    );
+    if (ctorLengthProp.length)
+      {ctor.length = Number(
+        ctorLengthProp[0]!.match(/whose value is \*(?<value>\d+)\*/u)!.groups!
+          .value!,
+      );}
   }
   const ctorProto = getPrototype(ctorPropSec);
   const protoProto = getPrototype(protoSec);
@@ -311,7 +293,7 @@ function expandAbstractClass(
   return subclasses.map((t) => ({
     ...s,
     name: t,
-    constructor: expandSection(s.constructor, t),
+    ctor: expandSection(s.ctor, t),
     ...Object.fromEntries(
       toExpand.map((k) => [k, s[k].map((p) => expandSection(p, t))]),
     ),
@@ -448,8 +430,8 @@ export function collectIntrinsics(toc: Section[]): JSGlobal[] {
     .find((s) => s.title === "Additional ECMAScript Features for Web Browsers")!
     .children.find((s) => s.title === "Additional Built-in Properties")!
     .children.forEach((s) => {
-      const target = /Additional Properties of the (?<name>.*) Object/u.exec(
-        s.title,
+      const target = s.title.match(
+        /Additional Properties of the (?<name>.*) Object/u,
       )!.groups!.name!;
       assert(
         s.children.every((t) => t.title.endsWith(")")),
