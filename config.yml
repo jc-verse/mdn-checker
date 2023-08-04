@@ -5,5 +5,5 @@ rules:
   deprecation-note: false
   description: false
   heading: false
-  spec-alignment: true
-  syntax-section: false
+  spec-alignment: false
+  syntax-section: true

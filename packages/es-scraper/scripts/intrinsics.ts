@@ -30,7 +30,7 @@ function parseParameters(title: string): [string, Parameters] {
   const { name, parameters } = title
     .replace(/(?<!,) /gu, "")
     .match(/(?<name>.*)\((?<parameters>.*)\)/u)!.groups!;
-  const count = parameters!.split(",").length;
+  const count = parameters!.trim() ? parameters!.split(",").length : 0;
   const optional = parameters!.split("[").length - 1;
   const rest = parameters!.includes("...");
   return [

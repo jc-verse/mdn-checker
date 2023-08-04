@@ -65,7 +65,7 @@ export function printRegExp(pattern: RegExp): string {
     pattern.source
       .replace(/(?<!\\)[\^$\\.*+?()[\]{}|]/gu, "\x1b[36m$&\x1b[39m")
       // eslint-disable-next-line prefer-named-capture-group
-      .replace(/\\(.)/gu, "$1")
+      .replace(/(?<!\\)\\([\^$\\.*+?()[\]{}|])/gu, "$1")
   );
 }
 

@@ -1,6 +1,11 @@
 import { escapeRegExp, interpolate, printRegExp } from "../utils.js";
 import inheritance from "../data/inheritance.js";
-import { getIntrinsics, type JSConstructor } from "es-scraper";
+import {
+  getIntrinsics,
+  type JSClass,
+  type JSConstructor,
+  type Parameters,
+} from "es-scraper";
 import type { Content, Heading } from "mdast";
 import type { Context } from "../context.js";
 
@@ -10,6 +15,28 @@ function isSyntaxHeading(node: Content): node is Heading {
     node.children[0]?.type === "text" &&
     node.children[0].value === "Syntax"
   );
+}
+
+function isKeyword(s: string) {
+  // List copied verbatim from spec
+  // prettier-ignore
+  const keywords = [
+    `await`,
+    `break`,
+    `case`, `catch`, `class`, `const`, `continue`,
+    `debugger`, `default`, `delete`, `do`,
+    `else`, `enum`, `export`, `extends`,
+    `false`, `finally`, `for`, `function`,
+    `if`, `import`, `in`, `instanceof`,
+    `new`, `null`,
+    `return`,
+    `super`, `switch`,
+    `this`, `throw`, `true`, `try`, `typeof`,
+    `var`, `void`,
+    `while`, `with`,
+    `yield`,
+  ];
+  return keywords.includes(s);
 }
 
 const intrinsics = await getIntrinsics();
@@ -48,6 +75,50 @@ function selectNotePattern(ctor: string): string {
   return notePatterns[target.ctor!.usage];
 }
 
+function expectedFunctionSyntax(
+  name: string,
+  params: Parameters,
+  usage: JSConstructor["usage"] = "call",
+): RegExp {
+  name = name.startsWith("[")
+    ? `\\w+\\${name.replace("@@", "Symbol\\.").replace("]", "\\]")}`
+    : isKeyword(name)
+    ? `\\w+\\.${name}`
+    : escapeRegExp(name);
+  const base = "\\w+, ".repeat(params.required);
+  const withOptional = Array.from(
+    { length: params.optional + 1 },
+    (_, i) => base + "\\w+, ".repeat(i),
+  );
+  const withRest = (
+    params.rest
+      ? // Those with rest must have no optional parameters
+        withOptional.flatMap((p) => [
+          p,
+          `${p}\\w+`,
+          `${p}\\w+, \\w+`,
+          `${p}\\w+, \\w+, /\\* …, \\*/ \\w+`,
+        ])
+      : withOptional
+  ).map((p) => p.replace(/, $/u, ""));
+  const withNew = (() => {
+    switch (usage) {
+      case "call":
+        return withRest.map((p) => `${name}\\(${p}\\)`);
+      case "construct":
+        return withRest.map((p) => `new ${name}\\(${p}\\)`);
+      case "equivalent":
+      case "different": {
+        const withoutNew = withRest.map((p) => `${name}\\(${p}\\)`);
+        return [...withoutNew.map((p) => `new ${p}`), ...withoutNew];
+      }
+      default:
+        return [];
+    }
+  })();
+  return new RegExp(`^${withNew.join("\n")}$`, "u");
+}
+
 const typedArrayCtors = Object.keys(inheritance).filter((k) =>
   inheritance[k]?.includes("TypedArray"),
 );
@@ -63,15 +134,96 @@ export default function rule(context: Context): void {
       ),
     )
     .filter((n) => n.type !== "html" || !n.value.startsWith("<!--"));
-  if (syntaxSection[1]!.type !== "code") context.report("Missing syntax");
-  else if (
+  if (syntaxSection[1]!.type !== "code") {
+    context.report("Missing syntax");
+    return;
+  } else if (
     !(
       syntaxSection[1].lang === "js-nolint" ||
       (context.path.includes("reference/regular_expressions") &&
         syntaxSection[1].lang === "regex")
     )
-  )
+  ) {
     context.report("Syntax uses wrong language");
+  } else {
+    let parameters: Parameters | undefined = undefined;
+    let funcName: string | undefined = undefined;
+    let usage: JSConstructor["usage"] | undefined = undefined;
+    switch (context.frontMatter["page-type"]) {
+      case "javascript-function": {
+        const data = intrinsics.find(
+          (o) => o.name === context.frontMatter.title,
+        );
+        if (data?.type !== "function") {
+          context.report("Does not correlate to known intrinsic");
+          break;
+        }
+        funcName = data.name.replace("()", "");
+        parameters = data.parameters;
+        break;
+      }
+      case "javascript-constructor": {
+        const ctor = context.frontMatter.title.replace(" constructor", "");
+        const data = intrinsics.find(
+          (o): o is JSClass => o.type === "class" && o.ctor?.name === ctor,
+        )?.ctor;
+        if (data?.type !== "constructor") {
+          context.report("Does not correlate to known intrinsic");
+          break;
+        }
+        funcName = data.name.replace("()", "");
+        parameters = data.parameters;
+        usage = data.usage;
+        break;
+      }
+      case "javascript-instance-method": {
+        const className = context.frontMatter.title.match(
+          /^(?<class>.+)\.prototype/u,
+        )?.groups?.class;
+        if (!className) {
+          context.report("Could not find class name");
+          break;
+        }
+        const data = intrinsics
+          .find((o): o is JSClass => o.type === "class" && o.name === className)
+          ?.instanceMethods.find((m) => m.name === context.frontMatter.title);
+        if (data?.type !== "method") {
+          context.report("Does not correlate to known intrinsic");
+          break;
+        }
+        const res = data.name.match(
+          /\.prototype(?:\.(?<name>\w+)|(?<symbolName>\[@@\w+\]))\(\)/,
+        )!.groups!;
+        funcName = res.name ?? res.symbolName;
+        parameters = data.parameters;
+        break;
+      }
+      case "javascript-static-method": {
+        const className =
+          context.frontMatter.title.match(/^(?<class>.+)\.\w\(/u)?.groups
+            ?.class;
+        if (!className) {
+          context.report("Could not find class name");
+          break;
+        }
+        const data = intrinsics
+          .find((o): o is JSClass => o.type === "class" && o.name === className)
+          ?.staticMethods.find((m) => m.name === context.frontMatter.title);
+        if (data?.type !== "method") {
+          context.report("Does not correlate to known intrinsic");
+          break;
+        }
+        funcName = data.name.match(/(?<name>.+)\(\)/)!.groups!.name!;
+        parameters = data.parameters;
+        break;
+      }
+    }
+    if (parameters && funcName) {
+      const syntax = expectedFunctionSyntax(funcName, parameters, usage);
+      if (!syntax.test(syntaxSection[1].value))
+        context.report(`Expected syntax: ${printRegExp(syntax)}`);
+    }
+  }
   if (context.frontMatter["page-type"] === "javascript-constructor") {
     const note = syntaxSection[2];
     if (!note || note.type !== "callout" || note.kind !== "Note") {
