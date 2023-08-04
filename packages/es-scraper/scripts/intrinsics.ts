@@ -185,11 +185,12 @@ function makeClass(s: Section): JSClass {
       .map((_, el) => $(el).text())
       .filter((_, text) => text.includes('has a *"length"* property'))
       .get();
-    if (ctorLengthProp.length)
-      {ctor.length = Number(
+    if (ctorLengthProp.length) {
+      ctor.length = Number(
         ctorLengthProp[0]!.match(/whose value is \*(?<value>\d+)\*/u)!.groups!
           .value!,
-      );}
+      );
+    }
   }
   const ctorProto = getPrototype(ctorPropSec);
   const protoProto = getPrototype(protoSec);
@@ -377,6 +378,9 @@ export function collectIntrinsics(toc: Section[]): JSGlobal[] {
       } else if (s.title === "Module Namespace Objects") {
         // No page for this
         return [];
+      } else if (s.title === "The Atomics Object") {
+        // Remove WaiterList things
+        return { ...s, children: s.children.slice(3) };
       }
       return s;
     })
