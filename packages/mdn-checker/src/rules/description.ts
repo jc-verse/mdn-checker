@@ -27,7 +27,7 @@ const patterns: [(ctx: Context) => unknown, string][] = [
           alias === "$_"
             ? "`RegExp.$_`"
             : alias === "$`"
-            ? '`` RegExp["$`"] ``'
+            ? '``RegExp["$`"]``'
             : `\`RegExp["${alias}"]\``,
         ),
       };
@@ -83,7 +83,7 @@ const patterns: [(ctx: Context) => unknown, string][] = [
   [
     (ctx) => {
       const name =
-        /RegExp\/(?<name>dotAll|global|hasIndices|ignoreCase|multiline|sticky|unicode)/u.exec(
+        /RegExp\/(?<name>dotAll|global|hasIndices|ignoreCase|multiline|sticky|unicodeSets|unicode)/u.exec(
           ctx.frontMatter.slug,
         )?.groups!.name;
       if (!name) return false;
@@ -95,6 +95,7 @@ const patterns: [(ctx: Context) => unknown, string][] = [
         multiline: "m",
         sticky: "y",
         unicode: "u",
+        unicodeSets: "v",
       }[name];
       return { name, flag };
     },
