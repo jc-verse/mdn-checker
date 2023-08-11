@@ -135,11 +135,14 @@ const patterns: [(ctx: Context) => unknown, string][] = [
     escapeRegExp`${"^"}The **\`[@@iterator]()\`** method of ~clsRef~ ~${"cls === 'arguments' ? 'objects' : isPrimitive ? 'values' : 'instances'"}~ implements the [iterable protocol](/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) and allows ~${"cls === 'Iterator' ? 'built-in iterator' : enCls"}~~${"enCls.endsWith('`') ? ' objects' : 's'"}~ to be consumed by most syntaxes expecting iterables, such as the [spread syntax](/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax) and {{jsxref("Statements/for...of", "for...of")}} loops. It returns ${".*"}.${"$"}`,
   ],
   [
+    (ctx) => /proxy\/proxy\/.*\/index\.md/u.test(ctx.path),
+    escapeRegExp`${"^"}The **\`~title~\`** method is a trap for the \`[[${".*"}]]\` [object internal method](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy#object_internal_methods), which is used by`,
+  ],
+  [
     (ctx) => ctx.frontMatter["page-type"] === "javascript-instance-method",
     // We have to replace an extra "\" in the title, which comes from escaping
     // the title
-    // TODO: make this stricter: all pages should have the "of...instances" part
-    escapeRegExp`${"^"}The **\`~${"title.replace(/.*prototype(\\\\\\.)?/u, '')"}~\`** method ${"(?:"}of ~clsRef~ ~${"isPrimitive ? 'values' : 'instances'"}~${"|(?!of))"}`,
+    escapeRegExp`${"^"}The **\`~${"title.replace(/.*prototype(\\\\\\.)?/u, '')"}~\`** method of ~clsRef~ ~${"isPrimitive ? 'values' : 'instances'"}~`,
   ],
   // Namespaces
   [

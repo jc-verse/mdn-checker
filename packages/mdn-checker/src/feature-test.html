@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      table {
+        border-collapse: collapse;
+      }
+      td {
+        border: 1px solid black;
+        padding: 0.5em;
+      }
+    </style>
+  </head>
+  <body>
+    <table></table>
+    <script>
+      const res = [];
+      function test(feature, condition) {
+        try {
+          const status = condition() ? "✅" : "❌";
+          res.push({ feature, status });
+        } catch (e) {
+          const status = "❌ " + e.message;
+          res.push({ feature, status });
+        }
+      }
+      test("temporal", () => Temporal);
+      test("resizablearraybuffer", () =>
+        typeof ArrayBuffer.prototype.resize !== "undefined");
+      test("shadowrealm", () => ShadowRealm);
+      test("decorators", () => eval("class A { @foo bar() {} }"));
+      test("json-parse-with-source", () =>
+        typeof JSON.isRawJSON !== "undefined");
+      test("regexp-modifiers", () => new RegExp("^[a-z](?-i:[a-z])$", "i"));
+      test("duplicate-named-capturing-groups", () =>
+        new RegExp("(?<a>a)|(?<a>b)"));
+      test("array-from-async", () => typeof Array.fromAsync !== "undefined");
+      test("set-methods", () =>
+        typeof Set.prototype.intersection !== "undefined");
+      test("iterator-helpers", () => Iterator);
+      test("explicit-resource-management", () =>
+        typeof Symbol.dispose !== "undefined");
+      test("arraybuffer-transfer", () =>
+        typeof ArrayBuffer.prototype.transfer !== "undefined");
+      test("float16array", () => Float16Array);
+      test("decorator-metadata", () => typeof Symbol.metadata !== "undefined");
+      test("array-grouping", () => typeof Object.groupBy !== "undefined");
+      test("promise-with-resolvers", () =>
+        typeof Promise.withResolvers !== "undefined");
+      res.forEach(({ feature, status }) => {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td");
+        const td2 = document.createElement("td");
+        td1.textContent = feature;
+        td2.textContent = status;
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        document.querySelector("table").appendChild(tr);
+      });
+    </script>
+  </body>
+</html>

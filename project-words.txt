@@ -4,6 +4,8 @@ frontmatter
 jsxref
 mdast
 nolint
+resizablearraybuffer
+shadowrealm
 specced
 subpage
 subpages
