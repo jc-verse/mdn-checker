@@ -3,7 +3,8 @@ rules:
   class-members: false
   data-prop: false
   deprecation-note: false
-  description: true
+  description: false
   heading: false
+  lint: true
   spec-alignment: false
   syntax-section: false

@@ -67,10 +67,7 @@ const frontMatterSchema = z.union([
 
 export type FrontMatter = z.infer<typeof frontMatterSchema>;
 
-export function parseFrontMatter(
-  source: string,
-  subPath: string,
-): [string, FrontMatter] {
+export function parseFrontMatter(source: string, subPath: string): FrontMatter {
   const res = (fm as unknown as typeof fm.default)(source);
   const parseRes = frontMatterSchema.safeParse(res.attributes);
   if (!parseRes.success) {
@@ -78,5 +75,5 @@ export function parseFrontMatter(
       cause: parseRes.error,
     });
   }
-  return [res.body, parseRes.data];
+  return parseRes.data;
 }

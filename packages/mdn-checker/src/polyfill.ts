@@ -3,6 +3,7 @@ import "core-js/actual/array/from-async.js";
 import "core-js/actual/array/group.js";
 import "core-js/actual/array/to-spliced.js";
 import "core-js/actual/set/difference.js";
+import "core-js/actual/iterator/map.js";
 
 declare global {
   interface ArrayConstructor {
@@ -22,5 +23,8 @@ declare global {
   }
   interface Set<T> {
     difference(other: Set<T>): Set<T>;
+  }
+  interface IterableIterator<T> {
+    map<U>(callback: (value: T, index: number) => U): IterableIterator<U>;
   }
 }

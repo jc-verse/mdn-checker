@@ -35,6 +35,7 @@ const [allRules, files, config] = await Promise.all([
     import("./rules/deprecation-note.js"),
     import("./rules/description.js"),
     import("./rules/heading.js"),
+    import("./rules/lint.js"),
     import("./rules/spec-alignment.js"),
     import("./rules/syntax-section.js"),
   ]),
@@ -54,6 +55,7 @@ export class Context {
   ast!: Root;
   frontMatter!: FrontMatter;
   #currentName = "";
+  #reports: { [ruleName: string]: string[] } = {};
   constructor(path: string, file: File) {
     this.path = path;
     Object.assign(this, file);
@@ -62,10 +64,20 @@ export class Context {
     this.#currentName = name;
   }
   report(message: unknown): void {
+    this.#reports[this.#currentName] ??= [];
+    this.#reports[this.#currentName]!.push(String(message));
+  }
+  outputReports(): void {
+    if (Object.keys(this.#reports).length === 0) return;
     console.error(
-      `\u001B]8;;${this.path}\u0007${this.frontMatter.title}\u001B]8;;\u0007: ${this.path}`,
+      `\u001B]8;;${this.path}\u0007${
+        this.frontMatter.title
+      }\u001B]8;;\u0007: ${Path.relative(process.cwd(), this.path)}`,
     );
-    console.error(`[${this.#currentName}]`, message);
+    for (const [ruleName, messages] of Object.entries(this.#reports)) {
+      console.error(`  [${ruleName}]`);
+      for (const message of messages) console.error(`    ${message}`);
+    }
   }
   getSource(node: Node, file: File = this): string {
     return file.source.slice(

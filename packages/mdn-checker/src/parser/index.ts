@@ -6,7 +6,7 @@ export type File = Pick<Context, "source" | "ast" | "frontMatter">;
 export type { FrontMatter };
 
 export function parse(source: string, subPath: string): File {
-  const [body, frontMatter] = parseFrontMatter(source, subPath);
-  const ast = parseMarkdown(body);
-  return { source: body, ast, frontMatter };
+  const frontMatter = parseFrontMatter(source, subPath);
+  const ast = parseMarkdown(source);
+  return { source, ast, frontMatter };
 }
