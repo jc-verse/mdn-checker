@@ -69,6 +69,9 @@ export class Context {
   }
   outputReports(): void {
     if (Object.keys(this.#reports).length === 0) return;
+    // TODO VS Code does not support hyperlinks to files (and the macOS Terminal
+    // does not support OSC 8 at all!)
+    // https://github.com/microsoft/vscode/issues/176812
     console.error(
       `\u001B]8;;${this.path}\u0007${
         this.frontMatter.title
@@ -76,7 +79,8 @@ export class Context {
     );
     for (const [ruleName, messages] of Object.entries(this.#reports)) {
       console.error(`  [${ruleName}]`);
-      for (const message of messages) console.error(`    ${message}`);
+      for (const message of messages)
+        console.error(`    ${message.split("\n").join("\n    ")}`);
     }
   }
   getSource(node: Node, file: File = this): string {
