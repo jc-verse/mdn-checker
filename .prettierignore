@@ -4,3 +4,4 @@ dist
 build
 .docusaurus
 generated
+packages/mdn-checker/src/rules/structure-consistency/templates

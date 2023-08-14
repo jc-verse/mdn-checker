@@ -42,12 +42,19 @@ export function interpolate(
   return text.replace(
     // eslint-disable-next-line prefer-named-capture-group
     /~([^~]+)~/gu,
-    (match, p1) =>
-      // eslint-disable-next-line no-new-func
-      Function(
-        ...Object.keys(params),
-        `return ${p1}`,
-      )(...Object.values(params)),
+    (match, p1) => {
+      try {
+        // eslint-disable-next-line no-new-func
+        return Function(
+          ...Object.keys(params),
+          `return ${p1}`,
+        )(...Object.values(params));
+      } catch (e) {
+        throw new Error(`Failed to interpolate the expression: ${p1}`, {
+          cause: e,
+        });
+      }
+    },
   );
 }
 

@@ -37,6 +37,7 @@ const [allRules, files, config] = await Promise.all([
     import("./rules/heading.js"),
     import("./rules/lint.js"),
     import("./rules/spec-alignment.js"),
+    import("./rules/structure-consistency/index.js"),
     import("./rules/syntax-section.js"),
   ]),
   Array.fromAsync(getFiles(javascriptPath)),
@@ -83,10 +84,12 @@ export class Context {
         console.error(`    ${message.split("\n").join("\n    ")}`);
     }
   }
-  getSource(node: Node, file: File = this): string {
+  getSource(node: Node | Node[], file: File = this): string {
+    const start = Array.isArray(node) ? node[0]! : node;
+    const end = Array.isArray(node) ? node.at(-1)! : node;
     return file.source.slice(
-      node.position!.start.offset,
-      node.position!.end.offset,
+      start.position!.start.offset,
+      end.position!.end.offset,
     );
   }
   getSubpages(path?: string, options?: { withPath?: false }): File[];

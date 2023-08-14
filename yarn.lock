@@ -899,6 +899,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/diff@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "@types/diff@npm:5.0.3"
+  checksum: d8a7d4de12f1aba0bd0c17b0b0d1e45c83824d3d6cc65763fbad371cd8315361a7e16fbae3f260a83bfdf30cebe1c876b42cec4518698055bc430fb09db1cbc8
+  languageName: node
+  linkType: hard
+
 "@types/eslint@npm:^8.44.2":
   version: 8.44.2
   resolution: "@types/eslint@npm:8.44.2"
@@ -1815,7 +1822,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:^5.0.0":
+"diff@npm:^5.0.0, diff@npm:^5.1.0":
   version: 5.1.0
   resolution: "diff@npm:5.1.0"
   checksum: c7bf0df7c9bfbe1cf8a678fd1b2137c4fb11be117a67bc18a0e03ae75105e8533dbfb1cda6b46beb3586ef5aed22143ef9d70713977d5fb1f9114e21455fba90
@@ -3471,7 +3478,9 @@ __metadata:
     "@mdn/browser-compat-data": ^5.2.57
     "@types/babel__core": ^7.20.1
     "@types/babel__traverse": ^7.20.1
+    "@types/diff": ^5.0.3
     core-js: ^3.30.1
+    diff: ^5.1.0
     eslint: ^8.46.0
     eslint-config-prettier: ^9.0.0
     front-matter: ^4.0.2

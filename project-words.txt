@@ -1,4 +1,7 @@
+aeiou
+builtins
 dirents
+domxref
 eslintcache
 frontmatter
 jsxref
