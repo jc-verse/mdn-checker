@@ -6,10 +6,9 @@ browser-compat: javascript.builtins.~cls~
 ---
 
 ```js setup
-const cls = context.frontMatter.title;
-exports.cls = cls;
-exports.isSerializable = !["AggregateError", "InternalError"].includes(cls);
-exports.article = /^[aeiou]/iu.test(cls) ? "an" : "a";
+export const cls = context.frontMatter.title;
+export const isSerializable = !["AggregateError", "InternalError"].includes(cls);
+export const article = /^[aeiou]/iu.test(cls) ? "an" : "a";
 const children = context.ast.children;
 const constructorHeading = children.findIndex(
   (node) =>
@@ -33,23 +32,23 @@ const seeAlsoHeading = children.findIndex(
 );
 const firstParagraph = children
   .findIndex((node) => node.type === "paragraph");
-exports.intro = context
+export const intro = context
   .getSource(children.slice(firstParagraph, constructorHeading))
   .replace(/^\{\{JSRef\}\}.*/mu, "")
   .replace(/^`\w+` is a \{\{Glossary\("serializable object"\)\}\}.*/mu, "")
   .replace(/^`\w+` is a subclass of \{\{jsxref\("Error"\)\}\}\./mu, "");
-exports.nonStandardNote =
+export const nonStandardNote =
   cls === "InternalError"
     ? ["\nstatus:\n  - non-standard", "{{Non-standard_Header}}", " {{Non-standard_Inline}}"]
     : ["", "", ""];
-exports.polyfillLink =
+export const polyfillLink =
   cls === "AggregateError"
     ? "- [Polyfill of `AggregateError` in `core-js`](https://github.com/zloirock/core-js#ecmascript-promise)"
     : "";
-exports.examples = context
+export const examples = context
   .getSource(children.slice(examplesHeading + 1, specificationsHeading))
   .trim();
-exports.seeAlso = context
+export const seeAlso = context
   .getSource(children.slice(seeAlsoHeading + 1))
   .replace(/^- \[Polyfill of.*\n?/mu, "")
   .replace(/^- \{\{jsxref\("Error"\)\}\}\n?/mu, "")

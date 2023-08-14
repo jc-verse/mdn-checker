@@ -6,31 +6,32 @@ browser-compat: javascript.~bcdKey~.@@iterator
 ---
 
 ```js setup
-const cls = context.frontMatter.title
+import { toEnglish } from "../../../../dist/utils.js";
+
+export const cls = context.frontMatter.title
   .replace("[@@iterator]()", "")
   .replace(".prototype", "");
-exports.cls = cls;
-exports.titleCls = cls === "arguments" ? cls : `${cls}.prototype`;
-exports.slug =
+export const titleCls = cls === "arguments" ? cls : `${cls}.prototype`;
+export const slug =
   cls === "Segments"
     ? "Global_Objects/Intl/Segmenter/segment/Segments"
     : cls === "arguments"
     ? "Functions/arguments"
     : `Global_Objects/${cls}`;
-exports.bcdKey =
+export const bcdKey =
   cls === "Segments"
     ? "builtins.Intl.Segments"
     : cls === "arguments"
     ? "functions.arguments"
     : `builtins.${cls}`;
-exports.clsRef =
+export const clsRef =
   cls === "Segments"
     ? "[`Segments`](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter/segment/Segments) instances"
     : cls === "arguments"
     ? '{{jsxref("Functions/arguments", "arguments")}} objects'
     : `{{jsxref("${cls}")}} ${cls === "String" ? "values" : "instances"}`;
-exports.enCls = toEnglish(cls);
-exports.enClsPl = {
+export const enCls = toEnglish(cls);
+export const enClsPl = {
   arguments: "`arguments` objects",
   Array: "arrays",
   TypedArray: "typed arrays",
@@ -40,7 +41,7 @@ exports.enClsPl = {
   String: "strings",
   Segments: "`Segments` objects",
 }[cls];
-exports.alias =
+export const alias =
   {
     arguments: "Array.prototype.values",
     Array: "Array.prototype.values",
@@ -57,7 +58,7 @@ const resultType = {
   String: "the Unicode code points of the string value as individual strings",
   Segments: "data about each segment",
 }[cls];
-const iteratorType = {
+export const iteratorType = {
   arguments: "array iterator",
   Array: "array iterator",
   TypedArray: "array iterator",
@@ -66,14 +67,13 @@ const iteratorType = {
   String: "string iterator",
   Segments: "segments iterator",
 }[cls];
-exports.iteratorType = iteratorType;
-exports.iteratorDesc =
+export const iteratorDesc =
   cls === "Iterator"
     ? "the value of [`this`](/en-US/docs/Web/JavaScript/Reference/Operators/this), which is the iterator object itself"
     : `${
         iteratorType.startsWith("a") ? "an" : "a"
       } [${iteratorType} object](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator) that yields ${resultType}`;
-exports.hasInteractiveExample = [
+export const hasInteractiveExample = [
   "Array",
   "Segments",
   "Map",
@@ -98,14 +98,14 @@ const nextSubheadings = Array.from({ length: 4 }, (_, i) =>
     headings[headings.indexOf(children[examplesHeading]) + i + 1],
   ),
 );
-exports.description =
+export const description =
   descriptionHeading === -1
     ? ""
     : context.getSource(children.slice(descriptionHeading, examplesHeading));
-exports.example1 = context.getSource(
+export const example1 = context.getSource(
   children.slice(nextSubheadings[0] + 2, nextSubheadings[1]),
 );
-exports.example2 =
+export const example2 =
   // Iterator has no "Manually hand-rolling the iterator" example because it's
   // just the iterator itself
   cls === "Iterator"
@@ -113,11 +113,11 @@ exports.example2 =
     : context.getSource(
         children.slice(nextSubheadings[1] + 2, nextSubheadings[2]),
       );
-exports.example3 =
+export const example3 =
   cls === "Array"
     ? context.getSource(children.slice(nextSubheadings[2], nextSubheadings[3]))
     : "";
-exports.seeAlso = context
+export const seeAlso = context
   .getSource(children.slice(seeAlsoHeading + 1))
   .replace(/^- \[Polyfill of.*\n?/mu, "")
   .replace(/^- \{\{jsxref\("Symbol\.iterator"\)\}\}\n?/mu, "")
@@ -128,7 +128,7 @@ const coreJSsection = {
   String: "string-and-regexp",
   TypedArray: "typed-arrays",
 }[cls];
-exports.polyfillLink = coreJSsection
+export const polyfillLink = coreJSsection
   ? `- [Polyfill of \`${cls}.prototype[@@iterator]\` in \`core-js\`](https://github.com/zloirock/core-js#ecmascript-${coreJSsection})`
   : "";
 ```

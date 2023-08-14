@@ -6,9 +6,8 @@ browser-compat: javascript.builtins.Intl.~cls~.supportedLocalesOf
 ---
 
 ```js setup
-const cls = /Intl\.(\w+)/.exec(context.frontMatter.title)[1];
-exports.cls = cls;
-exports.job = {
+export const cls = /Intl\.(\w+)/.exec(context.frontMatter.title)[1];
+export const job = {
   Collator: "collation",
   DateTimeFormat: "date and time formatting",
   DisplayNames: "display names",
@@ -19,11 +18,11 @@ exports.job = {
   RelativeTimeFormat: "relative time formatting",
   Segmenter: "segmentation",
 }[cls];
-exports.experimentalNote =
+export const experimentalNote =
   cls === "DurationFormat"
     ? ["\nstatus:\n  - experimental", "{{SeeCompatTable}}"]
     : ["", ""];
-exports.hasInteractiveExample = ["Collator", "DateTimeFormat", "NumberFormat", "PluralRules", "RelativeTimeFormat", "Segmenter"].includes(cls);
+export const hasInteractiveExample = ["Collator", "DateTimeFormat", "NumberFormat", "PluralRules", "RelativeTimeFormat", "Segmenter"].includes(cls);
 ```
 
 {{JSRef}}~experimentalNote[1]~

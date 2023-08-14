@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 import "./polyfill.js";
 
 import { pathToFile, rules, Context, exitContext } from "./context.js";

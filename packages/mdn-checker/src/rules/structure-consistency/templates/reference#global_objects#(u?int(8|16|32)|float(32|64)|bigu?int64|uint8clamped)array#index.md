@@ -6,21 +6,20 @@ browser-compat: javascript.builtins.~cls~
 ---
 
 ```js setup
-const cls = context.frontMatter.title;
-exports.cls = cls;
-exports.name = cls.replace("Array", "").replace("Clamped", "c").toLowerCase();
-exports.article = cls.startsWith("Int") ? "an" : "a";
+export const cls = context.frontMatter.title;
+export const name = cls.replace("Array", "").replace("Clamped", "c").toLowerCase();
+export const article = cls.startsWith("Int") ? "an" : "a";
 const literalSuffix = cls.includes("Big") ? "n" : "";
-exports.literal = (value) => `${value}${literalSuffix}`;
-exports.polyfillLink = cls.includes("Big")
+export const literal = (value) => `${value}${literalSuffix}`;
+export const polyfillLink = cls.includes("Big")
   ? ""
   : `- [Polyfill of \`${cls}\` in \`core-js\`](https://github.com/zloirock/core-js#ecmascript-typed-arrays)`;
-exports.BYTES_PER_ELEMENT = cls.match(/\d+/)[0] / 8;
-exports.clampedExtraExample = cls.includes("Clamped")
+export const BYTES_PER_ELEMENT = cls.match(/\d+/)[0] / 8;
+export const clampedExtraExample = cls.includes("Clamped")
   ? ["uint8c[1] = 1337;\n", "console.log(uint8c[1]); // 255 (clamped)\n"]
   : ["", ""];
-exports.dataType =
-  exports.BYTES_PER_ELEMENT * 8 +
+export const dataType =
+  BYTES_PER_ELEMENT * 8 +
   "-bit " +
   (cls.includes("Uint")
     ? "unsigned integers"

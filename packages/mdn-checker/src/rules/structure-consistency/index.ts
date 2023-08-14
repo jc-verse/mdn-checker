@@ -2,7 +2,7 @@ import FS from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import VM from "node:vm";
 import { diffWords } from "diff";
-import { interpolate, toEnglish } from "../../utils.js";
+import { interpolate } from "../../utils.js";
 import type { Context } from "../../context.js";
 
 const templateDir = new URL(
@@ -27,21 +27,32 @@ const templates = await FS.readdir(templateDir).then((files) =>
   ),
 );
 
-export default function rule(context: Context): void {
+export default async function rule(context: Context): Promise<void> {
   const template = templates.find(([path]) => path.test(context.path))![1];
-  const setup = template.match(/```js setup\n(?<content>.+?)\n```\n\n/su)!;
-  const content = template.replace(setup[0], "");
-  const variables = setup.groups!.content!;
+  const setupBlock = template.match(/```js setup\n(?<content>.+?)\n```\n\n/su)!;
+  const content = template.replace(setupBlock[0], "");
+  const setup = setupBlock.groups!.content!;
   const exports = {};
-  VM.runInContext(
-    variables,
-    // TODO allow setup to import modules; this requires using VM.Module
-    VM.createContext({
-      context,
-      exports,
-      toEnglish,
-    }),
+  const vmContext = VM.createContext({ context, exports });
+  const entry = new VM.SourceTextModule(
+    `
+  import * as Setup from "setup";
+
+  for (const [key, value] of Object.entries(Setup)) {
+    exports[key] = value;
+  }
+  `,
+    { context: vmContext },
   );
+  await entry.link(async (specifier) => {
+    if (specifier === "setup")
+      return new VM.SourceTextModule(setup, { context: vmContext });
+    return new VM.SourceTextModule(
+      await FS.readFile(fileURLToPath(`${templateDir}/${specifier}`), "utf-8"),
+      { context: vmContext },
+    );
+  });
+  await entry.evaluate();
   const compiledContent = interpolate(content, exports).replace(
     /\n{3,}/g,
     "\n\n",

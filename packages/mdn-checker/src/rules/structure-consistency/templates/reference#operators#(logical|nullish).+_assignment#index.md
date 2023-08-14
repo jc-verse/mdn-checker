@@ -6,13 +6,11 @@ browser-compat: javascript.operators.~name.toLowerCase().replaceAll(" ", "_")~
 ---
 
 ```js setup
-const [, name, operator] = context.frontMatter.title.match(/(.*) \((.*)\)/);
-exports.name = name[0].toLowerCase() + name.slice(1);
-exports.upperCaseName = name;
-exports.counterpart = exports.name.replace(" assignment", "");
-exports.upperCaseCounterpart = name.replace(" assignment", "");
-exports.operator = operator;
-exports.condition = {
+export const [, upperCaseName, operator] = context.frontMatter.title.match(/(.*) \((.*)\)/);
+export const name = upperCaseName[0].toLowerCase() + upperCaseName.slice(1);
+export const counterpart = name.replace(" assignment", "");
+export const upperCaseCounterpart = upperCaseName.replace(" assignment", "");
+export const condition = {
   "&&=": "truthy",
   "||=": "falsy",
   "??=": "nullish",
@@ -30,13 +28,13 @@ const specificationsHeading = children.findIndex(
 const seeAlsoHeading = children.findIndex(
   (node) => node.type === "heading" && node.children[0].value === "See also",
 );
-exports.examples = context
+export const examples = context
   .getSource(children.slice(examplesHeading + 1, specificationsHeading))
   .trim();
-exports.seeAlso = context
+export const seeAlso = context
   .getSource(children.slice(seeAlsoHeading + 1))
   .replace(/^- \[Assignment operators in the JS guide.*\n?/mu, "")
-  .replace(new RegExp(`- \\[${exports.upperCaseCounterpart}.*\\n?`, "mu"), "")
+  .replace(new RegExp(`- \\[${upperCaseCounterpart}.*\\n?`, "mu"), "")
   .trim();
 ```
 
