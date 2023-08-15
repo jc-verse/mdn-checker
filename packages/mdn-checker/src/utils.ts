@@ -1,3 +1,6 @@
+import type { Context } from "./context.js";
+import type { Heading, Content } from "mdast";
+
 export function mapValues<T, U>(
   obj: Record<string, T>,
   fn: (value: T, key: string) => U,
@@ -110,4 +113,74 @@ export function editingSteps(start: string[], end: string[]): Action[] {
     }
   }
   return dp[start.length]![end.length]!;
+}
+
+export class Section {
+  #nodes;
+  #context;
+  #depth;
+  #title;
+  #headings;
+  constructor(
+    nodes: Content[],
+    context: Context,
+    depth: number,
+    title: string,
+  ) {
+    this.#nodes = nodes;
+    this.#context = context;
+    this.#depth = depth;
+    this.#title = title;
+    this.#headings = this.#nodes.filter(
+      (node): node is Heading =>
+        node.type === "heading" && (node as Heading).depth === this.#depth,
+    );
+  }
+  get title(): string {
+    return this.#title;
+  }
+  get ast(): Content[] {
+    return this.#nodes;
+  }
+  get intro(): Content[] {
+    // If there are no headings, this is slice(0, -1), which is the entire array
+    return this.#nodes.slice(0, this.#nodes.indexOf(this.#headings[0]!));
+  }
+  getSubsection(
+    titleOrIndex: string | number,
+    { withTitle = false } = {},
+  ): Section | undefined {
+    const targetIndex =
+      typeof titleOrIndex === "string"
+        ? this.#headings.findIndex(
+            (heading) =>
+              this.#context.getSource(heading.children) === titleOrIndex,
+          )
+        : titleOrIndex;
+    if (targetIndex === -1 || !this.#headings[targetIndex]) return undefined;
+    const index = this.#nodes.indexOf(this.#headings[targetIndex]!);
+    const nextHeadingIndex =
+      targetIndex < this.#headings.length - 1
+        ? this.#nodes.indexOf(this.#headings[targetIndex + 1]!)
+        : undefined;
+    const title = this.#context.getSource(
+      this.#headings[targetIndex]!.children,
+    );
+    return new Section(
+      this.#nodes.slice(withTitle ? index : index + 1, nextHeadingIndex),
+      this.#context,
+      this.#depth + 1,
+      title,
+    );
+  }
+  *[Symbol.iterator](): Generator<Section> {
+    let subsection = undefined;
+    let i = 0;
+    // eslint-disable-next-line no-cond-assign
+    while ((subsection = this.getSubsection(i++, { withTitle: false })))
+      yield subsection;
+  }
+  toString(): string {
+    return this.#context.getSource(this.#nodes);
+  }
 }

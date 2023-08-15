@@ -6,8 +6,6 @@ browser-compat: javascript.~bcdKey~.@@iterator
 ---
 
 ```js setup
-import { toEnglish } from "../../../../dist/utils.js";
-
 export const cls = context.frontMatter.title
   .replace("[@@iterator]()", "")
   .replace(".prototype", "");
@@ -30,7 +28,6 @@ export const clsRef =
     : cls === "arguments"
     ? '{{jsxref("Functions/arguments", "arguments")}} objects'
     : `{{jsxref("${cls}")}} ${cls === "String" ? "values" : "instances"}`;
-export const enCls = toEnglish(cls);
 export const enClsPl = {
   arguments: "`arguments` objects",
   Array: "arrays",
@@ -80,45 +77,22 @@ export const hasInteractiveExample = [
   "Set",
   "String",
 ].includes(cls);
-const children = context.ast.children;
-const headings = children.filter(
-  (node) => node.type === "heading" && [2, 3].includes(node.depth),
-);
-const descriptionHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "Description",
-);
-const examplesHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "Examples",
-);
-const seeAlsoHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "See also",
-);
-const nextSubheadings = Array.from({ length: 4 }, (_, i) =>
-  children.indexOf(
-    headings[headings.indexOf(children[examplesHeading]) + i + 1],
-  ),
-);
 export const description =
-  descriptionHeading === -1
-    ? ""
-    : context.getSource(children.slice(descriptionHeading, examplesHeading));
-export const example1 = context.getSource(
-  children.slice(nextSubheadings[0] + 2, nextSubheadings[1]),
+  context.tree.getSubsection("Description", { withTitle: true }) ?? "";
+const examplesNode = context.tree.getSubsection("Examples");
+export const example1 = `${examplesNode.getSubsection(0)}`.replace(
+  /^Note that.*\n/mu,
+  "",
 );
+// Iterator has no "Manually hand-rolling the iterator" example because it's
+// just the iterator itself.
 export const example2 =
-  // Iterator has no "Manually hand-rolling the iterator" example because it's
-  // just the iterator itself
   cls === "Iterator"
     ? ""
-    : context.getSource(
-        children.slice(nextSubheadings[1] + 2, nextSubheadings[2]),
-      );
+    : `${examplesNode.getSubsection(1)}`.replace(/^You may still.*\n/mu, "");
 export const example3 =
-  cls === "Array"
-    ? context.getSource(children.slice(nextSubheadings[2], nextSubheadings[3]))
-    : "";
-export const seeAlso = context
-  .getSource(children.slice(seeAlsoHeading + 1))
+  examplesNode.getSubsection(2, { withTitle: true }) ?? "";
+export const seeAlso = `${context.tree.getSubsection("See also")}`
   .replace(/^- \[Polyfill of.*\n?/mu, "")
   .replace(/^- \{\{jsxref\("Symbol\.iterator"\)\}\}\n?/mu, "")
   .replace(/^- \[Iteration protocols.*\n?/mu, "")

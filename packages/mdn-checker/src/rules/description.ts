@@ -117,6 +117,12 @@ const patterns: [(ctx: Context) => unknown, string][] = [
     escapeRegExp`${"^"}The optional **\`displayName\`** property of a ~clsRef~ instance`,
   ],
   [
+    (ctx) =>
+      ctx.frontMatter["page-type"] === "javascript-instance-data-property" &&
+      ctx.path.includes("/functions/arguments/"),
+    escapeRegExp`${"^"}The **\`~${"title.replace('arguments.', '')"}~\`** data property`,
+  ],
+  [
     (ctx) => {
       if (ctx.frontMatter["page-type"] !== "javascript-instance-data-property")
         return false;
@@ -131,12 +137,13 @@ const patterns: [(ctx: Context) => unknown, string][] = [
   ],
   // Instance methods
   [
-    (ctx) => ctx.path.includes("@@iterator"),
-    escapeRegExp`${"^"}The **\`[@@iterator]()\`** method of ~clsRef~ ~${"cls === 'arguments' ? 'objects' : isPrimitive ? 'values' : 'instances'"}~ implements the [iterable protocol](/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) and allows ~${"cls === 'Iterator' ? 'built-in iterator' : enCls"}~~${"enCls.endsWith('`') ? ' objects' : 's'"}~ to be consumed by most syntaxes expecting iterables, such as the [spread syntax](/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax) and {{jsxref("Statements/for...of", "for...of")}} loops. It returns ${".*"}.${"$"}`,
-  ],
-  [
     (ctx) => /proxy\/proxy\/.*\/index\.md/u.test(ctx.path),
     escapeRegExp`${"^"}The **\`~title~\`** method is a trap for the \`[[${".*"}]]\` [object internal method](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy#object_internal_methods), which is used by`,
+  ],
+  // Note: other @@iterator pages are checked by structure-consistency
+  [
+    (ctx) => ctx.path.includes("/arguments/@@iterator/"),
+    escapeRegExp`${"^"}The **\`[@@iterator]()\`** method of {{jsxref("Functions/arguments", "arguments")}} objects`,
   ],
   [
     (ctx) => ctx.frontMatter["page-type"] === "javascript-instance-method",

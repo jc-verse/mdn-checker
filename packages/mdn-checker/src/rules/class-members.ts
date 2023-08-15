@@ -6,7 +6,7 @@ import namespaces from "../data/namespaces.js";
 import { editingSteps } from "../utils.js";
 import { toJSxRef as baseToJSxRef } from "../serializer/toJSxRef.js";
 
-import type { Heading, DescriptionList } from "mdast";
+import type { DescriptionList } from "mdast";
 import type { Context } from "../context.js";
 import type { File } from "../parser/index.js";
 
@@ -89,13 +89,6 @@ export default function rule(context: Context): void {
   const subpages = context
     .getSubpages()
     .group((subpage) => subpage.frontMatter["page-type"]);
-  const headings = context.ast.children
-    .filter(
-      (node): node is Heading => node.type === "heading" && node.depth === 2,
-    )
-    .map(
-      (h) => [context.getSource(h), context.ast.children.indexOf(h)] as const,
-    );
   const objName = context.frontMatter.title;
   if (!abstractClasses.includes(objName)) {
     if (
@@ -130,8 +123,8 @@ export default function rule(context: Context): void {
 
   function checkMembers(type: string, members: (File | string)[] = []) {
     adjustMembers(type, members, context);
-    const thisHeading = headings.findIndex(([text]) => text === `## ${type}`);
-    if (thisHeading === -1) {
+    const section = context.tree.getSubsection(type)?.ast;
+    if (!section) {
       if (members.length) {
         context.report(
           `Missing ${type} section, needed for: ${members
@@ -141,12 +134,6 @@ export default function rule(context: Context): void {
       }
       return;
     }
-    const thisHeadingIndex = headings[thisHeading]![1];
-    const nextHeadingIndex = headings[thisHeading + 1]?.[1];
-    const section = context.ast.children.slice(
-      thisHeadingIndex + 1,
-      nextHeadingIndex,
-    );
     if (!members.length) {
       if (
         !(

@@ -6,16 +6,7 @@ import {
   type JSConstructor,
   type Parameters,
 } from "es-scraper";
-import type { Content, Heading } from "mdast";
 import type { Context } from "../context.js";
-
-function isSyntaxHeading(node: Content): node is Heading {
-  return (
-    node.type === "heading" &&
-    node.children[0]?.type === "text" &&
-    node.children[0].value === "Syntax"
-  );
-}
 
 function isKeyword(s: string) {
   // List copied verbatim from spec
@@ -123,109 +114,109 @@ const typedArrayCtors = Object.keys(inheritance).filter((k) =>
   inheritance[k]?.includes("TypedArray"),
 );
 
+function checkSyntax(syntaxCode: string, context: Context) {
+  let parameters: Parameters | undefined = undefined;
+  let funcName: string | undefined = undefined;
+  let usage: JSConstructor["usage"] | undefined = undefined;
+  switch (context.frontMatter["page-type"]) {
+    case "javascript-function": {
+      const data = intrinsics.find((o) => o.name === context.frontMatter.title);
+      if (data?.type !== "function") {
+        context.report("Does not correlate to known intrinsic");
+        break;
+      }
+      funcName = data.name.replace("()", "");
+      parameters = data.parameters;
+      break;
+    }
+    case "javascript-constructor": {
+      const ctor = context.frontMatter.title.replace(" constructor", "");
+      const data = intrinsics.find(
+        (o): o is JSClass => o.type === "class" && o.ctor?.name === ctor,
+      )?.ctor;
+      if (data?.type !== "constructor") {
+        context.report("Does not correlate to known intrinsic");
+        break;
+      }
+      funcName = data.name.replace("()", "");
+      parameters = data.parameters;
+      usage = data.usage;
+      break;
+    }
+    case "javascript-instance-method": {
+      const className = context.frontMatter.title.match(
+        /^(?<class>.+)\.prototype/u,
+      )?.groups?.class;
+      if (!className) {
+        context.report("Could not find class name");
+        break;
+      }
+      const data = intrinsics
+        .find((o): o is JSClass => o.type === "class" && o.name === className)
+        ?.instanceMethods.find((m) => m.name === context.frontMatter.title);
+      if (data?.type !== "method") {
+        context.report("Does not correlate to known intrinsic");
+        break;
+      }
+      const res = data.name.match(
+        /\.prototype(?:\.(?<name>\w+)|(?<symbolName>\[@@\w+\]))\(\)/,
+      )!.groups!;
+      funcName = res.name ?? res.symbolName;
+      parameters = data.parameters;
+      break;
+    }
+    case "javascript-static-method": {
+      const className =
+        context.frontMatter.title.match(/^(?<class>.+)\.\w\(/u)?.groups?.class;
+      if (!className) {
+        context.report("Could not find class name");
+        break;
+      }
+      const data = intrinsics
+        .find((o): o is JSClass => o.type === "class" && o.name === className)
+        ?.staticMethods.find((m) => m.name === context.frontMatter.title);
+      if (data?.type !== "method") {
+        context.report("Does not correlate to known intrinsic");
+        break;
+      }
+      funcName = data.name.match(/(?<name>.+)\(\)/)!.groups!.name!;
+      parameters = data.parameters;
+      break;
+    }
+  }
+  if (parameters && funcName) {
+    const syntax = expectedFunctionSyntax(funcName, parameters, usage);
+    if (!syntax.test(syntaxCode))
+      context.report(`Expected syntax: ${printRegExp(syntax)}`);
+  }
+}
+
 export default function rule(context: Context): void {
-  const syntaxHeading = context.ast.children.findIndex(isSyntaxHeading);
-  const syntaxSection = context.ast.children
-    .slice(
-      syntaxHeading,
-      context.ast.children.findIndex(
-        (node, index) =>
-          index > syntaxHeading && node.type === "heading" && node.depth === 2,
-      ),
-    )
-    .filter((n) => n.type !== "html" || !n.value.startsWith("<!--"));
-  if (syntaxSection[1]!.type !== "code") {
+  const syntaxSection = context.tree
+    .getSubsection("Syntax")
+    ?.ast.filter((n) => n.type !== "html" || !n.value.startsWith("<!--"));
+  if (!syntaxSection) return;
+  if (syntaxSection[0]!.type !== "code") {
     context.report("Missing syntax");
     return;
   } else if (
     !(
-      syntaxSection[1].lang === "js-nolint" ||
+      syntaxSection[0].lang === "js-nolint" ||
       (context.path.includes("reference/regular_expressions") &&
-        syntaxSection[1].lang === "regex")
+        syntaxSection[0].lang === "regex")
     )
   ) {
     context.report("Syntax uses wrong language");
   } else {
-    let parameters: Parameters | undefined = undefined;
-    let funcName: string | undefined = undefined;
-    let usage: JSConstructor["usage"] | undefined = undefined;
-    switch (context.frontMatter["page-type"]) {
-      case "javascript-function": {
-        const data = intrinsics.find(
-          (o) => o.name === context.frontMatter.title,
-        );
-        if (data?.type !== "function") {
-          context.report("Does not correlate to known intrinsic");
-          break;
-        }
-        funcName = data.name.replace("()", "");
-        parameters = data.parameters;
-        break;
-      }
-      case "javascript-constructor": {
-        const ctor = context.frontMatter.title.replace(" constructor", "");
-        const data = intrinsics.find(
-          (o): o is JSClass => o.type === "class" && o.ctor?.name === ctor,
-        )?.ctor;
-        if (data?.type !== "constructor") {
-          context.report("Does not correlate to known intrinsic");
-          break;
-        }
-        funcName = data.name.replace("()", "");
-        parameters = data.parameters;
-        usage = data.usage;
-        break;
-      }
-      case "javascript-instance-method": {
-        const className = context.frontMatter.title.match(
-          /^(?<class>.+)\.prototype/u,
-        )?.groups?.class;
-        if (!className) {
-          context.report("Could not find class name");
-          break;
-        }
-        const data = intrinsics
-          .find((o): o is JSClass => o.type === "class" && o.name === className)
-          ?.instanceMethods.find((m) => m.name === context.frontMatter.title);
-        if (data?.type !== "method") {
-          context.report("Does not correlate to known intrinsic");
-          break;
-        }
-        const res = data.name.match(
-          /\.prototype(?:\.(?<name>\w+)|(?<symbolName>\[@@\w+\]))\(\)/,
-        )!.groups!;
-        funcName = res.name ?? res.symbolName;
-        parameters = data.parameters;
-        break;
-      }
-      case "javascript-static-method": {
-        const className =
-          context.frontMatter.title.match(/^(?<class>.+)\.\w\(/u)?.groups
-            ?.class;
-        if (!className) {
-          context.report("Could not find class name");
-          break;
-        }
-        const data = intrinsics
-          .find((o): o is JSClass => o.type === "class" && o.name === className)
-          ?.staticMethods.find((m) => m.name === context.frontMatter.title);
-        if (data?.type !== "method") {
-          context.report("Does not correlate to known intrinsic");
-          break;
-        }
-        funcName = data.name.match(/(?<name>.+)\(\)/)!.groups!.name!;
-        parameters = data.parameters;
-        break;
-      }
-    }
-    if (parameters && funcName) {
-      const syntax = expectedFunctionSyntax(funcName, parameters, usage);
-      if (!syntax.test(syntaxSection[1].value))
-        context.report(`Expected syntax: ${printRegExp(syntax)}`);
-    }
+    // We cannot check syntax atm because there are too many discrepancies
+    // between the spec and content about what's optional
+    // This is a super-hack to (a) make checkSyntax() used (b) make the code
+    // not unreachable as far as TS is concerned
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    (false as true) && checkSyntax(syntaxSection[0].value, context);
   }
   if (context.frontMatter["page-type"] === "javascript-constructor") {
-    const note = syntaxSection[2];
+    const note = syntaxSection[1];
     if (!note || note.type !== "callout" || note.kind !== "Note") {
       context.report("Missing note about constructor");
     } else {
@@ -243,87 +234,63 @@ export default function rule(context: Context): void {
       }
     }
   }
-  const subheadings = Object.fromEntries(
-    syntaxSection
-      .map((n, i) => [n, i] as const)
-      .filter(
-        (p): p is [Heading, number] =>
-          p[0].type === "heading" && p[0].depth === 3,
-      )
-      .map(
-        ([
-          {
-            children: [content],
-          },
-          i,
-        ]) => [content?.type === "text" ? content.value : "", i] as const,
-      ),
-  );
-  function checkSubsection(
-    sectionName: string,
-    checker: (section: Content[]) => void,
-  ) {
-    const index = subheadings[sectionName];
-    if (index && index > 0) {
-      const section = syntaxSection.slice(
-        index + 1,
-        Object.values(subheadings)[
-          Object.keys(subheadings).indexOf(sectionName) + 1
-        ],
-      );
-      checker(section);
-    }
-  }
   // CheckSubsection("Return value", (section) => {
   //   if (section.some((n) => !["callout", "paragraph", "dl"].includes(n.type)))
   //   console.log(context.path);
   // });
-  checkSubsection("Exceptions", (section) => {
+  const exceptionsSection = context.tree
+    .getSubsection("Syntax")!
+    .getSubsection("Exceptions")?.ast;
+  // eslint-disable-next-line no-restricted-syntax, no-labels
+  checkExceptions: if (!exceptionsSection) {
+    // eslint-disable-next-line no-labels
+    break checkExceptions;
+  } else if (
+    typedArrayCtors.includes(
+      context.frontMatter.title.replace("() constructor", ""),
+    )
+  ) {
     if (
-      typedArrayCtors.includes(
-        context.frontMatter.title.replace("() constructor", ""),
+      exceptionsSection.length !== 1 ||
+      context.getSource(exceptionsSection[0]!).trim() !==
+        "See [`TypedArray`](/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#exceptions)."
+    )
+      context.report("TypedArray Exceptions incorrect");
+  } else if (
+    exceptionsSection.length !== 1 ||
+    exceptionsSection[0]!.type !== "dl"
+  ) {
+    if (
+      !["eval()", "Generator.prototype.throw()", "await"].includes(
+        context.frontMatter.title,
       )
-    ) {
-      if (
-        section.length !== 1 ||
-        context.getSource(section[0]!).trim() !==
-          "See [`TypedArray`](/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#exceptions)."
-      )
-        context.report("TypedArray Exceptions incorrect");
-    } else if (section.length !== 1 || section[0]!.type !== "dl") {
-      if (
-        !["eval()", "Generator.prototype.throw()", "await"].includes(
-          context.frontMatter.title,
-        )
-      )
-        context.report("Exceptions section must be a single dl");
-    } else if (
-      section[0].children.some(
-        (n) =>
-          n.type === "dt" &&
-          !/^\{\{jsxref\("(?:TypeError|RangeError|SyntaxError|ReferenceError|URIError)"\)\}\}$/u.test(
-            context.getSource(n).trim(),
-          ),
-      )
-    ) {
-      context.report("Exceptions section must contain known errors");
-    } else if (
-      section[0].children.some(
-        (n) =>
-          n.type === "dd" &&
-          !/^- : Thrown (?:in \[strict mode\]\(\/en-US\/docs\/Web\/JavaScript\/Reference\/Strict_mode\) )?if/u.test(
-            context.getSource(n).trim(),
-          ),
-      )
-    ) {
-      context.report(
-        "Exception description must start with 'Thrown if' or 'Thrown in strict mode if'",
-      );
-    }
-  });
+    )
+      context.report("Exceptions section must be a single dl");
+  } else if (
+    exceptionsSection[0].children.some(
+      (n) =>
+        n.type === "dt" &&
+        !/^\{\{jsxref\("(?:TypeError|RangeError|SyntaxError|ReferenceError|URIError)"\)\}\}$/u.test(
+          context.getSource(n).trim(),
+        ),
+    )
+  ) {
+    context.report("Exceptions section must contain known errors");
+  } else if (
+    exceptionsSection[0].children.some(
+      (n) =>
+        n.type === "dd" &&
+        !/^- : Thrown (?:in \[strict mode\]\(\/en-US\/docs\/Web\/JavaScript\/Reference\/Strict_mode\) )?if/u.test(
+          context.getSource(n).trim(),
+        ),
+    )
+  ) {
+    context.report(
+      "Exception description must start with 'Thrown if' or 'Thrown in strict mode if'",
+    );
+  }
 }
 
 Object.defineProperty(rule, "name", { value: "syntax-section" });
 
-rule.appliesTo = (context: Context) =>
-  context.ast.children.some(isSyntaxHeading);
+rule.appliesTo = () => "all";

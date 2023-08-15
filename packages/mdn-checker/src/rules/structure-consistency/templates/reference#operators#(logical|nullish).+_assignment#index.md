@@ -15,24 +15,8 @@ export const condition = {
   "||=": "falsy",
   "??=": "nullish",
 }[operator];
-const children = context.ast.children;
-const headings = children.filter(
-  (node) => node.type === "heading" && [2, 3].includes(node.depth),
-);
-const examplesHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "Examples",
-);
-const specificationsHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "Specifications",
-);
-const seeAlsoHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "See also",
-);
-export const examples = context
-  .getSource(children.slice(examplesHeading + 1, specificationsHeading))
-  .trim();
-export const seeAlso = context
-  .getSource(children.slice(seeAlsoHeading + 1))
+export const examples = context.tree.getSubsection("Examples");
+export const seeAlso = `${context.tree.getSubsection("See also")}`
   .replace(/^- \[Assignment operators in the JS guide.*\n?/mu, "")
   .replace(new RegExp(`- \\[${upperCaseCounterpart}.*\\n?`, "mu"), "")
   .trim();

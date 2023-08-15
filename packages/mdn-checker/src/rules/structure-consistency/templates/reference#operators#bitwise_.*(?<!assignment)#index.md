@@ -33,19 +33,7 @@ export function toBinary(f, type = "Float64", sep = "") {
   );
   return ans.join(sep);
 }
-const children = context.ast.children;
-const headings = children.filter(
-  (node) => node.type === "heading" && [2, 3].includes(node.depth),
-);
-const examplesHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "Examples",
-);
-const specificationsHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "Specifications",
-);
-export const example = context
-  .getSource(children.slice(examplesHeading + 2, specificationsHeading))
-  .trim();
+export const example = context.tree.getSubsection("Examples").getSubsection(0);
 ```
 
 {{jsSidebar("Operators")}}

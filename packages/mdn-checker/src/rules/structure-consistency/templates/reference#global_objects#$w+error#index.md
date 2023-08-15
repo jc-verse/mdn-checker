@@ -7,49 +7,30 @@ browser-compat: javascript.builtins.~cls~
 
 ```js setup
 export const cls = context.frontMatter.title;
-export const isSerializable = !["AggregateError", "InternalError"].includes(cls);
+export const isSerializable = !["AggregateError", "InternalError"].includes(
+  cls,
+);
 export const article = /^[aeiou]/iu.test(cls) ? "an" : "a";
-const children = context.ast.children;
-const constructorHeading = children.findIndex(
-  (node) =>
-    node.type === "heading" &&
-    node.children[0].value === "Constructor",
-);
-const examplesHeading = children.findIndex(
-  (node) =>
-    node.type === "heading" &&
-    node.children[0].value === "Examples",
-);
-const specificationsHeading = children.findIndex(
-  (node) =>
-    node.type === "heading" &&
-    node.children[0].value === "Specifications",
-);
-const seeAlsoHeading = children.findIndex(
-  (node) =>
-    node.type === "heading" &&
-    node.children[0].value === "See also",
-);
-const firstParagraph = children
-  .findIndex((node) => node.type === "paragraph");
 export const intro = context
-  .getSource(children.slice(firstParagraph, constructorHeading))
+  // Remove front matter + sidebar
+  .getSource(context.tree.intro.slice(2))
   .replace(/^\{\{JSRef\}\}.*/mu, "")
   .replace(/^`\w+` is a \{\{Glossary\("serializable object"\)\}\}.*/mu, "")
   .replace(/^`\w+` is a subclass of \{\{jsxref\("Error"\)\}\}\./mu, "");
 export const nonStandardNote =
   cls === "InternalError"
-    ? ["\nstatus:\n  - non-standard", "{{Non-standard_Header}}", " {{Non-standard_Inline}}"]
+    ? [
+        "\nstatus:\n  - non-standard",
+        "{{Non-standard_Header}}",
+        " {{Non-standard_Inline}}",
+      ]
     : ["", "", ""];
 export const polyfillLink =
   cls === "AggregateError"
     ? "- [Polyfill of `AggregateError` in `core-js`](https://github.com/zloirock/core-js#ecmascript-promise)"
     : "";
-export const examples = context
-  .getSource(children.slice(examplesHeading + 1, specificationsHeading))
-  .trim();
-export const seeAlso = context
-  .getSource(children.slice(seeAlsoHeading + 1))
+export const examples = context.tree.getSubsection("Examples");
+export const seeAlso = `${context.tree.getSubsection("See also")}`
   .replace(/^- \[Polyfill of.*\n?/mu, "")
   .replace(/^- \{\{jsxref\("Error"\)\}\}\n?/mu, "")
   .trim();

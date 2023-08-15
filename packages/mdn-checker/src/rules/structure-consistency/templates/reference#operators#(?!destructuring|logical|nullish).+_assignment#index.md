@@ -11,24 +11,10 @@ export const name = upperCaseName[0].toLowerCase() + upperCaseName.slice(1);
 export const counterpart = name.replace(" assignment", "");
 export const upperCaseCounterpart = upperCaseName.replace(" assignment", "");
 export const isShorter = ["&=", "|=", "^=", "<<="].includes(operator);
-const children = context.ast.children;
-const headings = children.filter(
-  (node) => node.type === "heading" && [2, 3].includes(node.depth),
-);
-const examplesHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "Examples",
-);
-const specificationsHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "Specifications",
-);
-const seeAlsoHeading = children.findIndex(
-  (node) => node.type === "heading" && node.children[0].value === "See also",
-);
-export const example = context
-  .getSource(children.slice(examplesHeading + 2, specificationsHeading))
-  .trim();
-export const seeAlso = context
-  .getSource(children.slice(seeAlsoHeading + 1))
+export const example = context.tree
+  .getSubsection("Examples")
+  .getSubsection(0);
+export const seeAlso = `${context.tree.getSubsection("See also")}`
   .replace(/^- \[Assignment operators in the JS guide.*\n?/mu, "")
   .replace(new RegExp(`- \\[${upperCaseCounterpart}.*\\n?`, "mu"), "")
   .trim();

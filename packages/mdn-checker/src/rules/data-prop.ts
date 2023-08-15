@@ -1,23 +1,9 @@
-import type { Content, Heading } from "mdast";
 import type { Context } from "../context.js";
 
-function isValueHeading(node: Content): node is Heading {
-  return (
-    node.type === "heading" &&
-    node.children[0]?.type === "text" &&
-    node.children[0].value === "Value"
-  );
-}
-
 export default function rule(context: Context): void {
-  const valueHeading = context.ast.children.findIndex(isValueHeading);
-  const valueSection = context.ast.children.slice(
-    valueHeading + 1,
-    context.ast.children.findIndex(
-      (node, index) =>
-        index > valueHeading && node.type === "heading" && node.depth === 2,
-    ),
-  );
+  const valueSection = context.tree.getSubsection("Value")?.ast;
+  // Absence of Value section is reported by the heading rule
+  if (!valueSection) return;
   if (
     ![2, 3].includes(valueSection.length) ||
     valueSection[0]!.type !== "paragraph" ||
@@ -43,6 +29,4 @@ export default function rule(context: Context): void {
 Object.defineProperty(rule, "name", { value: "data-prop" });
 
 rule.appliesTo = (context: Context) =>
-  context.frontMatter["page-type"].endsWith("data-property") &&
-  // Absence of Value section is reported by the heading rule
-  context.ast.children.some(isValueHeading);
+  context.frontMatter["page-type"].endsWith("data-property");

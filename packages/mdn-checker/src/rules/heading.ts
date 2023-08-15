@@ -1,37 +1,5 @@
 import { editingSteps } from "../utils.js";
 import type { Context } from "../context.js";
-import type { Heading } from "mdast";
-
-type TOCTreeNode = { heading: string; children: TOCTreeNode[] };
-
-function treeifyTOC(headings: Heading[], context: Context): TOCTreeNode[] {
-  const items = headings.map((heading) => ({
-    ...heading,
-    parentIndex: -1,
-    children: [] as TOCTreeNode[],
-  }));
-
-  const prevIndexForLevel = Array<number>(7).fill(-1);
-
-  items.forEach((curr, currIndex) => {
-    const ancestorLevelIndexes = prevIndexForLevel.slice(2, curr.depth);
-    curr.parentIndex = Math.max(...ancestorLevelIndexes);
-    prevIndexForLevel[curr.depth] = currIndex;
-  });
-
-  const rootNodes: TOCTreeNode[] = [];
-
-  items.forEach((heading) => {
-    (heading.parentIndex >= 0
-      ? items[heading.parentIndex]!.children
-      : rootNodes
-    ).push({
-      heading: context.getSource(heading).replace(/^#+ /, ""),
-      children: heading.children,
-    });
-  });
-  return rootNodes;
-}
 
 const headingSequence = {
   "javascript-class": [
@@ -93,15 +61,7 @@ function headingIsOptional(heading: string, context: Context) {
 }
 
 export default function rule(context: Context): void {
-  const headings = context.ast.children.filter(
-    (node): node is Heading => node.type === "heading",
-  );
-  // For (const heading of headings) {
-  //   if (heading.children.length !== 1)
-  //     context.report("Heading has multiple children");
-  // }
-  const tree = treeifyTOC(headings, context);
-  const actualTexts = tree.map((t) => t.heading);
+  const topHeadings = Array.from(context.tree, (section) => section.title);
   let expectedTexts =
     headingSequence[
       context.frontMatter["page-type"] as keyof typeof headingSequence
@@ -113,7 +73,7 @@ export default function rule(context: Context): void {
       "Properties",
     );
   }
-  const edits = editingSteps(actualTexts, expectedTexts).filter(
+  const edits = editingSteps(topHeadings, expectedTexts).filter(
     (e) => e[0] !== "i" || !headingIsOptional(e[1], context),
   );
   if (edits.length) {

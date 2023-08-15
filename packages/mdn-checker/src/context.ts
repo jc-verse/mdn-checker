@@ -1,6 +1,7 @@
 import FS from "node:fs/promises";
 import Path from "node:path";
 import { loadConfig } from "./config.js";
+import { Section } from "./utils.js";
 import { parse, type File, type FrontMatter } from "./parser/index.js";
 import type { Root } from "mdast";
 import type { Node } from "unist";
@@ -129,6 +130,9 @@ export class Context {
     description = this.getSource(descriptionNode, file).replaceAll("\n", " ");
     descriptions.set(path, description);
     return description;
+  }
+  get tree(): Section {
+    return new Section(this.ast.children, this, 2, this.frontMatter.title);
   }
 }
 

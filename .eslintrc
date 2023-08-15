@@ -1,4 +1,7 @@
 {
   "extends": ["jc/base", "jc/import", "jc/typescript"],
-  "root": true
+  "root": true,
+  "rules": {
+    "accessor-pairs": ["error", { "getWithoutSet": false }]
+  }
 }
