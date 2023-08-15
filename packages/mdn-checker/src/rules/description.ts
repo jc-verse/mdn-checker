@@ -160,6 +160,16 @@ const patterns: [(ctx: Context) => unknown, string][] = [
     (ctx) => ctx.frontMatter["page-type"] === "javascript-namespace",
     escapeRegExp`${"^"}The **\`~title~\`** namespace object contains static ${"(?:properties and )?"}methods for`,
   ],
+  // Classes
+  [
+    (ctx) => ctx.frontMatter.title === "TypedArray",
+    escapeRegExp`${"^"}A **_TypedArray_** object`,
+  ],
+  [
+    (ctx) => ctx.frontMatter["page-type"] === "javascript-class",
+    // TODO make this stricter
+    escapeRegExp`${"^.*"}**\`~title~\`**`,
+  ],
   // Constructors
   [
     (ctx) => /(?<cls>symbol|bigint)\/\k<cls>/u.test(ctx.path),

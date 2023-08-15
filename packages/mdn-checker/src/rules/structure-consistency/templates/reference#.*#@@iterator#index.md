@@ -34,7 +34,7 @@ export const enClsPl = {
   TypedArray: "typed arrays",
   Map: "`Map` objects",
   Set: "`Set` objects",
-  Iterator: "all built-in iterators",
+  Iterator: "built-in iterators",
   String: "strings",
   Segments: "`Segments` objects",
 }[cls];

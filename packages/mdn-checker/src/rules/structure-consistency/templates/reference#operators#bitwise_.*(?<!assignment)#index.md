@@ -125,4 +125,4 @@ Bitwise ~opName~ing any number `x` ~truncMethod[0]~ returns `x` converted to a 3
 ## See also
 
 - [Bitwise operators in the JS guide](/en-US/docs/Web/JavaScript/Guide/Expressions_and_operators#bitwise_operators)
-~isUnary ? "" : `- [${upperCaseName} assignment operator](/en-US/docs/Web/JavaScript/Reference/Operators/${upperCaseName.replace(" ", "_")}_assignment)`~
+~isUnary ? "" : `- [${upperCaseName} assignment (\`${operator}=\`)](/en-US/docs/Web/JavaScript/Reference/Operators/${upperCaseName.replace(" ", "_")}_assignment)`~

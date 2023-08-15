@@ -45,9 +45,6 @@ const notePatterns: Record<JSConstructor["usage"], string> = {
   get none(): never {
     throw new Error("Abstract classes should not have constructor page");
   },
-  set none(v: never) {
-    throw new Error("Abstract classes should not have constructor page");
-  },
   different: escapeRegExp`\`~ctor~()\` can be called with or without [\`new\`](/en-US/docs/Web/JavaScript/Reference/Operators/new), but ${"(?:sometimes )?"}with different effects. See [Return value](#return_value).`,
 };
 
@@ -234,10 +231,6 @@ export default function rule(context: Context): void {
       }
     }
   }
-  // CheckSubsection("Return value", (section) => {
-  //   if (section.some((n) => !["callout", "paragraph", "dl"].includes(n.type)))
-  //   console.log(context.path);
-  // });
   const exceptionsSection = context.tree
     .getSubsection("Syntax")!
     .getSubsection("Exceptions")?.ast;
@@ -266,28 +259,37 @@ export default function rule(context: Context): void {
       )
     )
       context.report("Exceptions section must be a single dl");
-  } else if (
-    exceptionsSection[0].children.some(
-      (n) =>
-        n.type === "dt" &&
+  } else {
+    for (let i = 0; i < exceptionsSection[0].children.length; i += 2) {
+      const dt = exceptionsSection[0].children[i]!;
+      const dd = exceptionsSection[0].children[i + 1]!;
+      if (
         !/^\{\{jsxref\("(?:TypeError|RangeError|SyntaxError|ReferenceError|URIError)"\)\}\}$/u.test(
-          context.getSource(n).trim(),
-        ),
-    )
-  ) {
-    context.report("Exceptions section must contain known errors");
-  } else if (
-    exceptionsSection[0].children.some(
-      (n) =>
-        n.type === "dd" &&
-        !/^- : Thrown (?:in \[strict mode\]\(\/en-US\/docs\/Web\/JavaScript\/Reference\/Strict_mode\) )?if/u.test(
-          context.getSource(n).trim(),
-        ),
-    )
-  ) {
-    context.report(
-      "Exception description must start with 'Thrown if' or 'Thrown in strict mode if'",
-    );
+          context.getSource(dt).trim(),
+        )
+      )
+        context.report("Exceptions section must contain known errors");
+      if (dd.children.length === 1) {
+        if (
+          !/^- : Thrown (?:in \[strict mode\]\(\/en-US\/docs\/Web\/JavaScript\/Reference\/Strict_mode\) )?if/u.test(
+            context.getSource(dd).trim(),
+          )
+        )
+          context.report("Exception description must start with 'Thrown if'");
+      } else if (dd.children.length === 2 && dd.children[1]!.type === "list") {
+        if (
+          !/^- : Thrown (?:in \[strict mode\]\(\/en-US\/docs\/Web\/JavaScript\/Reference\/Strict_mode\) )?in one of the following cases:/u.test(
+            context.getSource(dd).trim(),
+          )
+        ) {
+          context.report(
+            "Exception description must start with 'Thrown in one of the following cases:'",
+          );
+        }
+      } else {
+        context.report("Unknown exception description structure");
+      }
+    }
   }
 }
 

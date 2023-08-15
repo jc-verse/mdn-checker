@@ -142,7 +142,10 @@ export const exitContext = new (class {
     this.#currentName = name;
   }
   report(message: unknown): void {
-    console.error(`[${this.#currentName}]`, message);
+    console.error(
+      `[${this.#currentName}]`,
+      `${message}`.split("\n").join("\n  "),
+    );
   }
 })();
 
