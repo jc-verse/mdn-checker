@@ -4,6 +4,7 @@ dirents
 domxref
 eslintcache
 frontmatter
+ints
 jsxref
 mdast
 nolint

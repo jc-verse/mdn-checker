@@ -41,7 +41,7 @@ export function interpolate(
 ): string {
   return text.replace(
     // eslint-disable-next-line prefer-named-capture-group
-    /~([^~]+)~/gu,
+    /~((?:[^~]|(?<=\\)~)+)~/gu,
     (match, p1) => {
       try {
         // eslint-disable-next-line no-new-func
