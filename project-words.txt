@@ -2,6 +2,7 @@ aeiou
 builtins
 dirents
 domxref
+endianness
 eslintcache
 frontmatter
 ints

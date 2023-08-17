@@ -3,6 +3,7 @@ import inheritance from "../data/inheritance.js";
 import {
   getIntrinsics,
   type JSClass,
+  type JSNamespace,
   type JSConstructor,
   type Parameters,
 } from "es-scraper";
@@ -112,6 +113,8 @@ const typedArrayCtors = Object.keys(inheritance).filter((k) =>
 );
 
 function checkSyntax(syntaxCode: string, context: Context) {
+  // No data for 402 atm
+  if (context.frontMatter.title.startsWith("Intl")) return;
   let parameters: Parameters | undefined = undefined;
   let funcName: string | undefined = undefined;
   let usage: JSConstructor["usage"] | undefined = undefined;
@@ -164,13 +167,17 @@ function checkSyntax(syntaxCode: string, context: Context) {
     }
     case "javascript-static-method": {
       const className =
-        context.frontMatter.title.match(/^(?<class>.+)\.\w\(/u)?.groups?.class;
+        context.frontMatter.title.match(/^(?<class>.+)\.\w+\(/u)?.groups?.class;
       if (!className) {
         context.report("Could not find class name");
         break;
       }
       const data = intrinsics
-        .find((o): o is JSClass => o.type === "class" && o.name === className)
+        .find(
+          (o): o is JSClass | JSNamespace =>
+            (o.type === "class" || o.type === "namespace") &&
+            o.name === className,
+        )
         ?.staticMethods.find((m) => m.name === context.frontMatter.title);
       if (data?.type !== "method") {
         context.report("Does not correlate to known intrinsic");
