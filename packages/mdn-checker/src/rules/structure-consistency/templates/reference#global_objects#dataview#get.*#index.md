@@ -35,7 +35,7 @@ export const result = dataview[topic](1);
 
 {{JSRef}}
 
-The **`~topic~()`** method of {{jsxref("DataView")}} instances reads ~BYTES_PER_ELEMENT~ byte~BYTES_PER_ELEMENT === 1 ? "" : "s starting"~ at the specified byte offset of this `DataView` and interprets ~BYTES_PER_ELEMENT === 1 ? "it" : "them"~ as ~dataType.startsWith("8") ? "an" : "a"~ ~dataType~.
+The **`~topic~()`** method of {{jsxref("DataView")}} instances reads ~BYTES_PER_ELEMENT~ byte~BYTES_PER_ELEMENT === 1 ? "" : "s starting"~ at the specified byte offset of this `DataView` and interprets ~BYTES_PER_ELEMENT === 1 ? "it" : "them"~ as ~dataType.startsWith("8") ? "an" : "a"~ ~dataType~.~BYTES_PER_ELEMENT === 1 ? "" : " There is no alignment constraint; multi-byte values may be fetched from any offset within bounds."~
 
 {{EmbedInteractiveExample("pages/js/dataview-~topic.toLowerCase()~.html")}}
 
@@ -49,7 +49,7 @@ ${topic}(byteOffset, littleEndian)`~
 ### Parameters
 
 - `byteOffset`
-  - : The offset, in bytes, from the start of the view to read the data from.~BYTES_PER_ELEMENT === 1 ? "" : ` There is no alignment constraint; multi-byte values may be fetched from any offset.
+  - : The offset, in bytes, from the start of the view to read the data from.~BYTES_PER_ELEMENT === 1 ? "" : `
 - \`littleEndian\` {{optional_inline}}
   - : Indicates whether the data is stored in [little- or big-endian](/en-US/docs/Glossary/Endianness) format. If \`false\` or \`undefined\`, a big-endian value is read.
 `~

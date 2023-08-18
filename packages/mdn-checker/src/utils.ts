@@ -87,9 +87,9 @@ export function editingSteps(start: string[], end: string[]): Action[] {
   );
   dp[0]![0] = [];
   for (let i = 1; i <= start.length; i++)
-    dp[i]![0] = [...dp[i - 1]![0]!, ["d", start[i]!]];
+    dp[i]![0] = [...dp[i - 1]![0]!, ["d", start[i - 1]!]];
   for (let j = 1; j <= end.length; j++)
-    dp[0]![j] = [...dp[0]![j - 1]!, ["i", end[j]!]];
+    dp[0]![j] = [...dp[0]![j - 1]!, ["i", end[j - 1]!]];
   for (let i = 0; i < start.length; i++) {
     for (let j = 0; j < end.length; j++) {
       if (start[i] === end[j]) {
@@ -157,15 +157,14 @@ export class Section {
               this.#context.getSource(heading.children) === titleOrIndex,
           )
         : titleOrIndex;
-    if (targetIndex === -1 || !this.#headings[targetIndex]) return undefined;
-    const index = this.#nodes.indexOf(this.#headings[targetIndex]!);
+    const heading = this.#headings[targetIndex];
+    if (!heading) return undefined;
+    const index = this.#nodes.indexOf(heading);
     const nextHeadingIndex =
       targetIndex < this.#headings.length - 1
         ? this.#nodes.indexOf(this.#headings[targetIndex + 1]!)
         : undefined;
-    const title = this.#context.getSource(
-      this.#headings[targetIndex]!.children,
-    );
+    const title = this.#context.getSource(heading.children);
     return new Section(
       this.#nodes.slice(withTitle ? index : index + 1, nextHeadingIndex),
       this.#context,

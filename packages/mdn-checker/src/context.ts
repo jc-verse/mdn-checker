@@ -86,6 +86,7 @@ export class Context {
     }
   }
   getSource(node: Node | Node[], file: File = this): string {
+    if (Array.isArray(node) && node.length === 0) return "";
     const start = Array.isArray(node) ? node[0]! : node;
     const end = Array.isArray(node) ? node.at(-1)! : node;
     return file.source.slice(

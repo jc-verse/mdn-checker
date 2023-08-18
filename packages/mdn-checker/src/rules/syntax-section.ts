@@ -211,13 +211,12 @@ export default function rule(context: Context): void {
     )
   ) {
     context.report("Syntax uses wrong language");
-  } else {
+  } else if (false as true) {
     // We cannot check syntax atm because there are too many discrepancies
     // between the spec and content about what's optional
     // This is a super-hack to (a) make checkSyntax() used (b) make the code
     // not unreachable as far as TS is concerned
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    (false as true) && checkSyntax(syntaxSection[0].value, context);
+    checkSyntax(syntaxSection[0].value, context);
   }
   if (context.frontMatter["page-type"] === "javascript-constructor") {
     const note = syntaxSection[1];

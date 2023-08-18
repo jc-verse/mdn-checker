@@ -4,7 +4,7 @@ rules:
   data-prop: false
   deprecation-note: false
   description: false
-  heading: false
+  heading: true
   lint: false
   spec-alignment: false
   structure-consistency: true

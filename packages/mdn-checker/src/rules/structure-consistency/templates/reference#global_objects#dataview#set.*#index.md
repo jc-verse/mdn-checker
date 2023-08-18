@@ -24,7 +24,7 @@ export const result = dataview[topic.replace("set", "get")](BYTES_PER_ELEMENT ==
 
 {{JSRef}}
 
-The **`~topic~()`** method of {{jsxref("DataView")}} instances takes a ~topic.includes("Big") ? "BigInt" : "number"~ and stores it as ~dataType.startsWith("8") ? "an" : "a"~ ~dataType~ in the ~BYTES_PER_ELEMENT === 1 ? "" : `${BYTES_PER_ELEMENT} `~byte~BYTES_PER_ELEMENT === 1 ? "" : "s starting"~ at the specified byte offset of this `DataView`.
+The **`~topic~()`** method of {{jsxref("DataView")}} instances takes a ~topic.includes("Big") ? "BigInt" : "number"~ and stores it as ~dataType.startsWith("8") ? "an" : "a"~ ~dataType~ in the ~BYTES_PER_ELEMENT === 1 ? "" : `${BYTES_PER_ELEMENT} `~byte~BYTES_PER_ELEMENT === 1 ? "" : "s starting"~ at the specified byte offset of this `DataView`.~BYTES_PER_ELEMENT === 1 ? "" : " There is no alignment constraint; multi-byte values may be stored at any offset within bounds."~
 
 {{EmbedInteractiveExample("pages/js/dataview-~topic.toLowerCase()~.html")}}
 
@@ -38,7 +38,7 @@ ${topic}(byteOffset, value, littleEndian)`~
 ### Parameters
 
 - `byteOffset`
-  - : The offset, in bytes, from the start of the view to store the data in. There is no alignment constraint; multi-byte values may be stored at any offset.
+  - : The offset, in bytes, from the start of the view to store the data in.
 - `value`
   - : The value to set~topic.includes("Big") ? ' as a {{jsxref("BigInt")}}' : ""~. For how the value is encoded in bytes, see [Value encoding and normalization](/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#value_encoding_and_normalization).~BYTES_PER_ELEMENT === 1 ? "" : `
 - \`littleEndian\` {{optional_inline}}
