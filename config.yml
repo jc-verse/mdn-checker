@@ -4,8 +4,8 @@ rules:
   data-prop: false
   deprecation-note: false
   description: false
-  heading: true
+  heading: false
   lint: false
   spec-alignment: false
-  structure-consistency: true
-  syntax-section: false
+  structure-consistency: false
+  syntax-section: true

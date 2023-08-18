@@ -1,11 +1,11 @@
 import { escapeRegExp, interpolate, printRegExp } from "../utils.js";
 import inheritance from "../data/inheritance.js";
-import {
-  getIntrinsics,
-  type JSClass,
-  type JSNamespace,
-  type JSConstructor,
-  type Parameters,
+import intrinsics from "../data/real-parameters.js";
+import type {
+  JSClass,
+  JSNamespace,
+  JSConstructor,
+  Parameters,
 } from "es-scraper";
 import type { Context } from "../context.js";
 
@@ -30,8 +30,6 @@ function isKeyword(s: string) {
   ];
   return keywords.includes(s);
 }
-
-const intrinsics = await getIntrinsics();
 
 const notePatterns: Record<JSConstructor["usage"], string> = {
   equivalent: escapeRegExp(
@@ -72,24 +70,25 @@ function expectedFunctionSyntax(
   name = name.startsWith("[")
     ? `\\w+\\${name.replace("@@", "Symbol\\.").replace("]", "\\]")}`
     : isKeyword(name)
-    ? `\\w+\\.${name}`
+    ? `\\w+(?:Instance|Value)\\.${name}`
     : escapeRegExp(name);
   const base = "\\w+, ".repeat(params.required);
   const withOptional = Array.from(
     { length: params.optional + 1 },
     (_, i) => base + "\\w+, ".repeat(i),
   );
-  const withRest = (
-    params.rest
-      ? // Those with rest must have no optional parameters
-        withOptional.flatMap((p) => [
-          p,
-          `${p}\\w+`,
-          `${p}\\w+, \\w+`,
-          `${p}\\w+, \\w+, /\\* …, \\*/ \\w+`,
-        ])
-      : withOptional
-  ).map((p) => p.replace(/, $/u, ""));
+  const rest = [
+    `\\w+1, `,
+    `\\w+1, \\w+2, `,
+    `\\w+1, \\w+2, /\\* …, \\*/ \\w+N, `,
+  ].map((p) =>
+    name.includes("Function")
+      ? `${p}${withOptional.at(-1)}`
+      : `${withOptional.at(-1)}${p}`,
+  );
+  const withRest = (params.rest ? withOptional.concat(rest) : withOptional).map(
+    (p) => p.replace(/, $/u, ""),
+  );
   const withNew = (() => {
     switch (usage) {
       case "call":
@@ -105,7 +104,7 @@ function expectedFunctionSyntax(
         return [];
     }
   })();
-  return new RegExp(`^${withNew.join("\n")}$`, "u");
+  return new RegExp(`^${withNew.join("\n+")}$`, "u");
 }
 
 const typedArrayCtors = Object.keys(inheritance).filter((k) =>
@@ -211,7 +210,7 @@ export default function rule(context: Context): void {
     )
   ) {
     context.report("Syntax uses wrong language");
-  } else if (false as true) {
+  } else {
     // We cannot check syntax atm because there are too many discrepancies
     // between the spec and content about what's optional
     // This is a super-hack to (a) make checkSyntax() used (b) make the code

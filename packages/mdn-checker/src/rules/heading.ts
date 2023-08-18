@@ -111,13 +111,9 @@ export default function rule(context: Context): void {
   const syntaxSection = context.tree.getSubsection("Syntax");
   if (syntaxSection) {
     const syntaxHeadings = Array.from(syntaxSection, (s) => s.title);
-    const hasNoParameters = /```js-nolint\n(?:.+\(\)\n+)+```/.test(
-      `${syntaxSection}`,
-    );
     checkHeadingSequence(
       syntaxHeadings,
-      context.frontMatter["page-type"].endsWith("accessor-property") ||
-        hasNoParameters
+      context.frontMatter["page-type"].endsWith("accessor-property")
         ? ["Return value", "Exceptions", "Aliasing"]
         : ["Parameters", "Return value", "Exceptions", "Aliasing"],
       context,
