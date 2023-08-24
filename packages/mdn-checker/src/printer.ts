@@ -33,7 +33,7 @@ export async function printReports(allReports: {
           print(
             by === "file"
               ? `  [${ruleNameOrPath}]`
-              : formatPath(ruleNameOrPath),
+              : `  ${formatPath(ruleNameOrPath)}`,
           );
           for (const message of messages)
             print(`    ${message.split("\n").join("\n    ")}`);
@@ -121,6 +121,14 @@ export async function printReports(allReports: {
         `,
         "utf-8",
       );
+      break;
     }
+    case "json":
+      await FS.writeFile(
+        new URL("../generated/report.json", import.meta.url),
+        JSON.stringify(allReports, null, 2),
+        "utf-8",
+      );
+      break;
   }
 }

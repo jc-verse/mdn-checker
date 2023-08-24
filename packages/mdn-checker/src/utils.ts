@@ -7,6 +7,8 @@ export function color(c: string, text: string): string {
   switch (output) {
     case "stderr":
     case "stdout":
+    case "json":
+      // For JSON, we assume you are using an ANSI previewer
       return `\x1b[${
         {
           red: 31,

@@ -11,6 +11,7 @@ export const output = z
     z.literal("html"),
     z.literal("stdout"),
     z.literal("stderr"),
+    z.literal("json"),
     z.undefined(),
   ])
   .default("stdout")
