@@ -86,9 +86,10 @@ function adjustMembers(
 }
 
 export default function rule(context: Context): void {
-  const subpages = context
-    .getSubpages()
-    .group((subpage) => subpage.frontMatter["page-type"]);
+  const subpages = Object.groupBy(
+    context.getSubpages(),
+    (subpage) => subpage.frontMatter["page-type"],
+  );
   const objName = context.frontMatter.title;
   if (!abstractClasses.includes(objName)) {
     if (

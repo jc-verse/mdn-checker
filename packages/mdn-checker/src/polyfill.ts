@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/method-signature-style */
 import "core-js/actual/array/from-async.js";
-import "core-js/actual/array/group.js";
 import "core-js/actual/array/to-spliced.js";
+import "core-js/actual/object/group-by.js";
 import "core-js/actual/set/difference.js";
 import "core-js/actual/iterator/map.js";
 
@@ -10,10 +10,6 @@ declare global {
     fromAsync<T>(iterable: AsyncIterable<T>): Promise<T[]>;
   }
   interface Array<T> {
-    group<K extends PropertyKey>(
-      this: T[],
-      key: (item: T) => K,
-    ): Partial<Record<K, T[]>>;
     toSpliced(
       this: T[],
       start: number,
@@ -26,5 +22,11 @@ declare global {
   }
   interface IterableIterator<T> {
     map<U>(callback: (value: T, index: number) => U): IterableIterator<U>;
+  }
+  interface Object {
+    groupBy<T, K extends string | symbol>(
+      items: Iterable<T>,
+      key: (item: T) => K,
+    ): Record<K, T[]>;
   }
 }
