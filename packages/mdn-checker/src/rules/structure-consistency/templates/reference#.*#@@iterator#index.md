@@ -124,6 +124,10 @@ The **`[@@iterator]()`** method of ~clsRef~ implements the [iterable protocol](/
 ~cls[0].toLowerCase() + cls.slice(1)~[Symbol.iterator]()
 ```
 
+### Parameters
+
+None.
+
 ### Return value
 
 ~(alias ? `The same return value as {{jsxref("${alias}()")}}: ${iteratorDesc}` : iteratorDesc[0].toUpperCase() + iteratorDesc.slice(1)).replace(new RegExp(`(a)n? \\[${iteratorType}`, "i"), "$1 new [iterable iterator")~.~cls === "Segments" ? " Each yielded object has the same properties as the object returned by the [`containing()`](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter/segment/Segments/containing) method." : ""~

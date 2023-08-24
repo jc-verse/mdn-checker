@@ -1,4 +1,5 @@
 rules:
+  anchor-links: true
   bad-dl: true
   class-members: true
   data-prop: true

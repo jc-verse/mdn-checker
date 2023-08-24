@@ -1,54 +1,18 @@
-import FS from "node:fs/promises";
 import Path from "node:path";
-import { loadConfig } from "./config.js";
 import { Section } from "./utils.js";
-import { parse, type File, type FrontMatter } from "./parser/index.js";
+import type { File, FrontMatter } from "./parser/index.js";
 import type { Root } from "mdast";
 import type { Node } from "unist";
 
-async function* getFiles(
-  dir: string,
-): AsyncGenerator<[string, File], void, never> {
-  const dirents = await FS.readdir(dir, { withFileTypes: true });
-  for (const dirent of dirents) {
-    const subPath = Path.resolve(dir, dirent.name);
-    if (dirent.isDirectory()) {
-      yield* getFiles(subPath);
-    } else if (dirent.name.endsWith(".md")) {
-      const source = await FS.readFile(subPath, "utf-8");
-      const file = parse(source, subPath);
-      yield [subPath, file];
-    }
-  }
-}
-
 if (!process.argv[2]) throw new Error("No content path specified");
 
-const contentPath = Path.resolve(process.cwd(), process.argv[2]);
-const javascriptPath = Path.join(contentPath, "files/en-us/web/javascript");
-
-const [allRules, files, config] = await Promise.all([
-  Promise.all([
-    // Load rules; each import() must take a literal to allow static analysis
-    import("./rules/bad-dl.js"),
-    import("./rules/class-members.js"),
-    import("./rules/data-prop.js"),
-    import("./rules/deprecation-note.js"),
-    import("./rules/description.js"),
-    import("./rules/heading.js"),
-    import("./rules/lint.js"),
-    import("./rules/see-also.js"),
-    import("./rules/spec-alignment.js"),
-    import("./rules/structure-consistency/index.js"),
-    import("./rules/syntax-section.js"),
-  ]),
-  Array.fromAsync(getFiles(javascriptPath)),
-  loadConfig(),
-]);
-
-export const rules = allRules.filter((rule) => config.rules[rule.default.name]);
-
-export const pathToFile = new Map(files);
+export const contentPath = Path.resolve(process.cwd(), process.argv[2]);
+export const javascriptPath = Path.join(
+  contentPath,
+  "files/en-us/web/javascript",
+);
+// This map is populated by index.js
+export const pathToFile = new Map<string, File>();
 
 const descriptions = new Map<string, string>();
 

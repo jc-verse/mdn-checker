@@ -107,15 +107,13 @@ Object.entries(proposals).forEach(([name, features]) => {
   });
 });
 
-const documented = new Set<string>();
-
 export default function rule(context: FileContext): void {
-  documented.add(
-    JSON.stringify({
-      name: context.frontMatter.title,
-      type: context.frontMatter["page-type"],
-    }),
-  );
+  const key = JSON.stringify({
+    name: context.frontMatter.title,
+    type: context.frontMatter["page-type"],
+  });
+  if (!specced.has(key)) context.report("API not described in spec");
+  specced.delete(key);
 }
 
 Object.defineProperty(rule, "name", { value: "spec-alignment" });
@@ -144,14 +142,10 @@ const deliberateNoDocs = [
 ];
 
 rule.onExit = (context: ExitContext) => {
-  const unrecognized = documented.difference(specced);
-  if (unrecognized.size) {
-    context.report(`Unrecognized content pages:
-${[...unrecognized].join("\n")}`);
-  }
-  const undocumented = [...specced.difference(documented)].filter(
-    (n) => !deliberateNoDocs.includes(JSON.parse(n).name),
-  );
+  const undocumented = specced
+    .values()
+    .filter((n) => !deliberateNoDocs.includes(JSON.parse(n).name))
+    .toArray();
   if (undocumented.length) {
     context.report(`Undocumented specced APIs:
 ${undocumented.join("\n")}`);

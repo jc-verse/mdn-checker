@@ -121,6 +121,12 @@ export async function printReports(allReports: {
         `,
         "utf-8",
       );
+      console.log(
+        `HTML viewable at ${new URL(
+          "../generated/index.html",
+          import.meta.url,
+        )}`,
+      );
       break;
     }
     case "json":

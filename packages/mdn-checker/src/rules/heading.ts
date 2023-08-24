@@ -52,24 +52,24 @@ function checkHeadingSequence(
   expected: string[],
   context: FileContext,
   headingIsOptional: (heading: string) => boolean,
+  prefix = "",
 ) {
   const edits = editingSteps(headings, expected).filter(
     (e) => !(e[0] === "i" && headingIsOptional(e[1])),
   );
   if (edits.length) {
-    context.report(
-      `Wrong heading sequence:
-- ${edits
-        .map(
-          (e) =>
-            ({
-              d: `extra "${e[1]}"`,
-              i: `missing "${e[1]}"`,
-              s: `"${e[1]}" should be "${e[2]}"`,
-            }[e[0]]),
-        )
-        .join("\n- ")}`,
-    );
+    edits
+      .map(
+        (e) =>
+          ({
+            d: `Extra "${prefix}${e[1]}"`,
+            i: `Missing "${prefix}${e[1]}"`,
+            s: `"${prefix}${e[1]}" should be "${prefix}${e[2]}"`,
+          }[e[0]]),
+      )
+      .forEach((o) => {
+        context.report(o);
+      });
   }
 }
 
@@ -115,6 +115,10 @@ export default function rule(context: FileContext): void {
       syntaxHeadings,
       context.frontMatter["page-type"].endsWith("accessor-property")
         ? ["Return value", "Exceptions", "Aliasing"]
+        : ["import.meta", "new.target", "null", "this"].includes(
+            context.frontMatter.title,
+          )
+        ? ["Value"]
         : ["Parameters", "Return value", "Exceptions", "Aliasing"],
       context,
       (heading: string) => {
@@ -131,6 +135,7 @@ export default function rule(context: FileContext): void {
           return true;
         return ["Exceptions", "Aliasing"].includes(heading);
       },
+      "Syntax > ",
     );
   }
 }
