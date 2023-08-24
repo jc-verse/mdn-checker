@@ -1,5 +1,5 @@
 import { getIntrinsics } from "es-scraper";
-import type { Context, ExitContext } from "../context.js";
+import type { FileContext, ExitContext } from "../context.js";
 
 const specced = new Set<string>();
 function addSpecced(type: string, obj: string | { name: string }) {
@@ -95,7 +95,7 @@ intrinsics.forEach((o) => {
 
 const documented = new Set<string>();
 
-export default function rule(context: Context): void {
+export default function rule(context: FileContext): void {
   documented.add(
     JSON.stringify({
       name: context.frontMatter.title,
@@ -106,7 +106,7 @@ export default function rule(context: Context): void {
 
 Object.defineProperty(rule, "name", { value: "spec-alignment" });
 
-rule.appliesTo = (context: Context) =>
+rule.appliesTo = (context: FileContext) =>
   context.frontMatter["page-type"].startsWith("javascript") &&
   /global_objects\/(?!intl)/.test(context.path) &&
   !context.frontMatter.title.includes("handler.");

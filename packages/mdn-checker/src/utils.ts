@@ -1,5 +1,26 @@
-import type { Context } from "./context.js";
+import { output } from "./arguments.js";
+import type { FileContext } from "./context.js";
 import type { Heading, Content } from "mdast";
+
+// eslint-disable-next-line consistent-return
+export function color(c: string, text: string): string {
+  switch (output) {
+    case "stderr":
+    case "stdout":
+      return `\x1b[${
+        {
+          red: 31,
+          green: 32,
+          yellow: 33,
+          blue: 34,
+          magenta: 35,
+          cyan: 36,
+        }[c] ?? 39
+      }m${text}\x1b[39m`;
+    case "html":
+      return `<span class="${c}">${text}</span>`;
+  }
+}
 
 export function mapValues<T, U>(
   obj: Record<string, T>,
@@ -73,7 +94,7 @@ export function escapeRegExp(
 export function printRegExp(pattern: RegExp): string {
   return (
     pattern.source
-      .replace(/(?<!\\)[\^$\\.*+?()[\]{}|]/gu, "\x1b[36m$&\x1b[39m")
+      .replace(/(?<!\\)[\^$\\.*+?()[\]{}|]/gu, color("cyan", "$&"))
       // eslint-disable-next-line prefer-named-capture-group
       .replace(/(?<!\\)\\([\^$\\.*+?()[\]{}|])/gu, "$1")
   );
@@ -123,7 +144,7 @@ export class Section {
   #headings;
   constructor(
     nodes: Content[],
-    context: Context,
+    context: FileContext,
     depth: number,
     title: string,
   ) {

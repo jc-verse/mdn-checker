@@ -1,6 +1,6 @@
-import type { Context } from "../context.js";
+import type { FileContext } from "../context.js";
 
-export default function rule(context: Context): void {
+export default function rule(context: FileContext): void {
   if (!/^.*\{\{Deprecated_Header\}\}/imu.test(context.source))
     context.report("No deprecated header");
 
@@ -16,7 +16,7 @@ export default function rule(context: Context): void {
 
 Object.defineProperty(rule, "name", { value: "deprecation-note" });
 
-rule.appliesTo = (context: Context) =>
+rule.appliesTo = (context: FileContext) =>
   context.frontMatter.status?.includes("deprecated") &&
   // These pages have the note incorporated in the intro
   !["Date.prototype.getYear()", "Date.prototype.setYear()"].includes(

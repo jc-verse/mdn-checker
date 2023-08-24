@@ -7,7 +7,7 @@ import { editingSteps } from "../utils.js";
 import { toJSxRef as baseToJSxRef } from "../serializer/toJSxRef.js";
 
 import type { DescriptionList } from "mdast";
-import type { Context } from "../context.js";
+import type { FileContext } from "../context.js";
 import type { File } from "../parser/index.js";
 
 const toJSxRef = (t: File | string) =>
@@ -16,7 +16,7 @@ const toJSxRef = (t: File | string) =>
 function adjustMembers(
   type: string,
   members: (File | string)[],
-  context: Context,
+  context: FileContext,
 ) {
   const objName = context.frontMatter.title;
   switch (type) {
@@ -85,7 +85,7 @@ function adjustMembers(
   });
 }
 
-export default function rule(context: Context): void {
+export default function rule(context: FileContext): void {
   const subpages = Object.groupBy(
     context.getSubpages(),
     (subpage) => subpage.frontMatter["page-type"],
@@ -214,7 +214,7 @@ export default function rule(context: Context): void {
 
 Object.defineProperty(rule, "name", { value: "class-members" });
 
-rule.appliesTo = (context: Context) =>
+rule.appliesTo = (context: FileContext) =>
   ["javascript-class", "javascript-namespace"].includes(
     context.frontMatter["page-type"],
   );

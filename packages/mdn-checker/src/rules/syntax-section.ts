@@ -7,7 +7,7 @@ import type {
   JSConstructor,
   Parameters,
 } from "es-scraper";
-import type { Context } from "../context.js";
+import type { FileContext } from "../context.js";
 
 function isKeyword(s: string) {
   // List copied verbatim from spec
@@ -111,7 +111,7 @@ const typedArrayCtors = Object.keys(inheritance).filter((k) =>
   inheritance[k]?.includes("TypedArray"),
 );
 
-function checkSyntax(syntaxCode: string, context: Context) {
+function checkSyntax(syntaxCode: string, context: FileContext) {
   // No data for 402 atm
   if (context.frontMatter.title.startsWith("Intl")) return;
   let parameters: Parameters | undefined = undefined;
@@ -194,7 +194,7 @@ function checkSyntax(syntaxCode: string, context: Context) {
   }
 }
 
-export default function rule(context: Context): void {
+export default function rule(context: FileContext): void {
   const syntaxSection = context.tree
     .getSubsection("Syntax")
     ?.ast.filter((n) => n.type !== "html" || !n.value.startsWith("<!--"));

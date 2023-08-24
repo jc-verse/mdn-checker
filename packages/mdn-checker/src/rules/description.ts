@@ -3,9 +3,9 @@ import { interpolate, escapeRegExp, toEnglish } from "../utils.js";
 import { toJSxRef } from "../serializer/toJSxRef.js";
 import primitives from "../data/primitives.js";
 import inheritance from "../data/inheritance.js";
-import type { Context } from "../context.js";
+import type { FileContext } from "../context.js";
 
-const patterns: [(ctx: Context) => unknown, string][] = [
+const patterns: [(ctx: FileContext) => unknown, string][] = [
   // Static accessor properties
   [
     (ctx) => /(?:map|set)\/@@species/u.test(ctx.path),
@@ -207,7 +207,7 @@ const patterns: [(ctx: Context) => unknown, string][] = [
   ],
 ];
 
-export default function rule(context: Context): void {
+export default function rule(context: FileContext): void {
   let extraParams = null as unknown;
   const descriptionPattern = patterns.find(
     ([cond]) => (extraParams = cond(context)),

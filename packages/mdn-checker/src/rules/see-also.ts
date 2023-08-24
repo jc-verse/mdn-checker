@@ -1,5 +1,5 @@
 import type { List } from "mdast";
-import type { Context } from "../context.js";
+import type { FileContext } from "../context.js";
 
 function linkIsInternal(href: string) {
   return (
@@ -24,7 +24,7 @@ const wellKnownSites = [
   "Wikipedia",
 ];
 
-export default function rule(context: Context): void {
+export default function rule(context: FileContext): void {
   let seeAlsoSection = context.tree.getSubsection("See also")?.ast;
   if (!seeAlsoSection) return;
   if (

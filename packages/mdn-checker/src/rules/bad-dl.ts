@@ -1,7 +1,7 @@
 import { visit } from "unist-util-visit";
-import type { Context } from "../context.js";
+import type { FileContext } from "../context.js";
 
-export default function rule(context: Context): void {
+export default function rule(context: FileContext): void {
   visit(context.ast, "listItem", (node) => {
     const firstParagraph = node.children[0];
     if (firstParagraph?.type !== "paragraph") return;

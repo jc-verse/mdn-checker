@@ -76,6 +76,7 @@ export const hasInteractiveExample = [
   "Map",
   "Set",
   "String",
+  "TypedArray",
 ].includes(cls);
 export const description =
   context.tree.getSubsection("Description", { withTitle: true }) ?? "";

@@ -1,6 +1,6 @@
-import type { Context } from "../context.js";
+import type { FileContext } from "../context.js";
 
-export default function rule(context: Context): void {
+export default function rule(context: FileContext): void {
   const valueSection = context.tree.getSubsection("Value")?.ast;
   // Absence of Value section is reported by the heading rule
   if (!valueSection) return;
@@ -28,5 +28,5 @@ export default function rule(context: Context): void {
 
 Object.defineProperty(rule, "name", { value: "data-prop" });
 
-rule.appliesTo = (context: Context) =>
+rule.appliesTo = (context: FileContext) =>
   context.frontMatter["page-type"].endsWith("data-property");

@@ -3,7 +3,7 @@ import { parse as babelParse } from "@babel/parser";
 import traverse from "@babel/traverse";
 import type { NodePath, types as t } from "@babel/core";
 import { visit } from "unist-util-visit";
-import type { Context } from "../context.js";
+import type { FileContext } from "../context.js";
 
 const configScript: Linter.Config = {
   root: true,
@@ -95,7 +95,7 @@ function looksLikeModule(source: string): boolean {
   }
 }
 
-export default async function rule(context: Context): Promise<void> {
+export default async function rule(context: FileContext): Promise<void> {
   const resPromises: Promise<readonly [ESLint.LintResult, number]>[] = [];
   visit(context.ast, "code", (node) => {
     if (node.lang !== "js") return;

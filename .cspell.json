@@ -2,7 +2,7 @@
   "version": "0.2",
   "gitignoreRoot": ".",
   "useGitignore": true,
-  "dictionaries": ["typescript", "project-words"],
+  "dictionaries": ["typescript", "css", "fonts", "project-words"],
   "dictionaryDefinitions": [
     {
       "name": "project-words",

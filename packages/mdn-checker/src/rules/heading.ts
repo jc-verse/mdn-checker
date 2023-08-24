@@ -1,5 +1,5 @@
 import { editingSteps } from "../utils.js";
-import type { Context } from "../context.js";
+import type { FileContext } from "../context.js";
 import type { FrontMatter } from "../parser/front-matter.js";
 
 const headingSequence = {
@@ -50,7 +50,7 @@ Object.entries(headingSequence).forEach(([k, sequence]) => {
 function checkHeadingSequence(
   headings: string[],
   expected: string[],
-  context: Context,
+  context: FileContext,
   headingIsOptional: (heading: string) => boolean,
 ) {
   const edits = editingSteps(headings, expected).filter(
@@ -83,7 +83,7 @@ const optionalTopHeadings = [
   "Exceptions",
 ];
 
-export default function rule(context: Context): void {
+export default function rule(context: FileContext): void {
   const topHeadings = Array.from(context.tree, (section) => section.title);
   let expectedTexts = headingSequence[context.frontMatter["page-type"]];
   if (context.frontMatter.title === "The arguments object") {
@@ -137,5 +137,5 @@ export default function rule(context: Context): void {
 
 Object.defineProperty(rule, "name", { value: "heading" });
 
-rule.appliesTo = (context: Context) =>
+rule.appliesTo = (context: FileContext) =>
   context.frontMatter["page-type"].startsWith("javascript");

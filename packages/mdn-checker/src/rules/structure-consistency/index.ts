@@ -2,8 +2,8 @@ import FS from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import VM from "node:vm";
 import { diffWords } from "diff";
-import { interpolate } from "../../utils.js";
-import type { Context } from "../../context.js";
+import { interpolate, color } from "../../utils.js";
+import type { FileContext } from "../../context.js";
 
 const templateDir = new URL(
   "../../../src/rules/structure-consistency/templates",
@@ -27,7 +27,7 @@ const templates = await FS.readdir(templateDir).then((files) =>
   ),
 );
 
-export default async function rule(context: Context): Promise<void> {
+export default async function rule(context: FileContext): Promise<void> {
   const template = templates.find(([path]) => path.test(context.path))![1];
   const setupBlock = template.match(/```js setup\n(?<content>.+?)\n```\n\n/su)!;
   const content = template.replace(setupBlock[0], "");
@@ -63,19 +63,20 @@ export default async function rule(context: Context): Promise<void> {
   diff.forEach((part, i) => {
     if (!part.added && !part.removed) {
       const lines = part.value.split("\n");
-      report += `\u001b[30m${
+      report += color(
+        "default",
         lines.length > 3
           ? `${i === 0 ? "" : `${lines[0]}\n`}...\n${lines.at(-1)}`
-          : part.value
-      }`;
+          : part.value,
+      );
     } else {
-      report += `\u001b[${part.added ? "32" : "31"}m${part.value}`;
+      report += color(part.added ? "green" : "red", part.value);
     }
   });
-  context.report(`${report}\u001b[0m`);
+  context.report(report);
 }
 
 Object.defineProperty(rule, "name", { value: "structure-consistency" });
 
-rule.appliesTo = (context: Context) =>
+rule.appliesTo = (context: FileContext) =>
   templates.find(([path]) => path.test(context.path));
