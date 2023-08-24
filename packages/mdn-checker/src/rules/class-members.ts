@@ -22,9 +22,7 @@ function adjustMembers(
   switch (type) {
     case "Instance properties":
       if (["Proxy", ...namespaces].includes(objName)) break;
-      if (
-        !["Object", "Segments", "Iterator", "AsyncIterator"].includes(objName)
-      ) {
+      if (!["Object", "Segments"].includes(objName)) {
         members.push(
           `{{jsxref("Object/constructor", "${objName}.prototype.constructor")}}`,
         );

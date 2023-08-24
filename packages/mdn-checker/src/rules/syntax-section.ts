@@ -56,6 +56,15 @@ function selectNotePattern(ctor: string): string {
   if (ctor === "Intl.Collator") return notePatterns.equivalent;
   if (ctor.startsWith("Intl")) return notePatterns.construct;
   if (ctor === "InternalError") return notePatterns.equivalent;
+  // TODO reinvestigate how to make this better when Iterator is in the spec
+  if (ctor === "Iterator") {
+    return (
+      notePatterns.construct +
+      escapeRegExp(
+        " In addition, `Iterator()` cannot actually be constructed itself — it's usually implicitly constructed through [`super()`](/en-US/docs/Web/JavaScript/Reference/Operators/super) calls inside the constructor of a subclass.",
+      )
+    );
+  }
   const target = intrinsics.find((o) => o.name === ctor);
   if (!target || target.type !== "class")
     throw new Error(`${ctor} is not a known global class`);

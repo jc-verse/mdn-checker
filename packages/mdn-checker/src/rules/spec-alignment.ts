@@ -1,4 +1,5 @@
 import { getIntrinsics } from "es-scraper";
+import proposals from "../data/stage-3.js";
 import type { FileContext, ExitContext } from "../context.js";
 
 const specced = new Set<string>();
@@ -93,6 +94,19 @@ intrinsics.forEach((o) => {
   }
 });
 
+Object.entries(proposals).forEach(([name, features]) => {
+  let warned = false;
+  features.forEach((feature) => {
+    if (specced.has(feature) && !warned) {
+      console.warn(
+        `Looks like ${name} is already in the main spec. Remember to update stage-3.ts.`,
+      );
+      warned = true;
+    }
+    specced.add(feature);
+  });
+});
+
 const documented = new Set<string>();
 
 export default function rule(context: FileContext): void {
@@ -109,7 +123,9 @@ Object.defineProperty(rule, "name", { value: "spec-alignment" });
 rule.appliesTo = (context: FileContext) =>
   context.frontMatter["page-type"].startsWith("javascript") &&
   /global_objects\/(?!intl)/.test(context.path) &&
-  !context.frontMatter.title.includes("handler.");
+  !context.frontMatter.title.includes("handler.") &&
+  // Non-standard APIs are never specced
+  !context.frontMatter.status?.includes("non-standard");
 
 const deliberateNoDocs = [
   "Date.prototype.toGMTString()",

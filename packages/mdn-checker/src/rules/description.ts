@@ -184,6 +184,10 @@ const patterns: [(ctx: FileContext) => unknown, string][] = [
     escapeRegExp`${"^"}The **\`Object()\`** constructor`,
   ],
   [
+    (ctx) => ctx.path.includes("/iterator/iterator/"),
+    escapeRegExp`${"^"}The **\`Iterator()\`** constructor`,
+  ],
+  [
     (ctx) =>
       inheritance[
         /(?<cls>.+)\(\) constructor/u.exec(ctx.frontMatter.title)?.groups!

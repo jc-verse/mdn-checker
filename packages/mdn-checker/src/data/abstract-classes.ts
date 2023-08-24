@@ -1,7 +1,7 @@
+// "Abstract classes" here are classes that don't have constructors;
+// Iterator and AsyncIterator have constructor pages
 export default [
   "TypedArray",
-  "Iterator",
-  "AsyncIterator",
   "Generator",
   "AsyncGenerator",
   "Segments",
