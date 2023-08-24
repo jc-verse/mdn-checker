@@ -37,6 +37,7 @@ const [allRules, files, config] = await Promise.all([
     import("./rules/description.js"),
     import("./rules/heading.js"),
     import("./rules/lint.js"),
+    import("./rules/see-also.js"),
     import("./rules/spec-alignment.js"),
     import("./rules/structure-consistency/index.js"),
     import("./rules/syntax-section.js"),

@@ -1,11 +1,12 @@
 rules:
-  bad-dl: false
-  class-members: false
-  data-prop: false
-  deprecation-note: false
-  description: false
-  heading: false
-  lint: false
-  spec-alignment: false
-  structure-consistency: false
+  bad-dl: true
+  class-members: true
+  data-prop: true
+  deprecation-note: true
+  description: true
+  heading: true
+  lint: true
+  see-also: true
+  spec-alignment: true
+  structure-consistency: true
   syntax-section: true

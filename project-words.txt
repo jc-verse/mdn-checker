@@ -3,8 +3,11 @@ builtins
 dirents
 domxref
 endianness
+esdiscuss
 eslintcache
+formatjs
 frontmatter
+innolitics
 ints
 jsxref
 mdast
@@ -18,3 +21,4 @@ treeify
 unist
 unprefixed
 yarnpkg
+zloirock
