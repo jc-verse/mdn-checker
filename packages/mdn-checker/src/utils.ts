@@ -20,7 +20,7 @@ export function color(c: string, text: string): string {
         }[c] ?? 39
       }m${text}\x1b[39m`;
     case "html":
-      return `<span class="${c}">${text}</span>`;
+      return `<span style="color:var(--${c});">${text}</span>`;
   }
 }
 

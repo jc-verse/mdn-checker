@@ -8,6 +8,12 @@ const html = (strings: TemplateStringsArray, ...values: unknown[]) =>
 
 function formatPath(path: string) {
   if (path === "*") return "";
+  if (output === "html") {
+    return `<a href="https://github.com/mdn/content/tree/main/files/en-us${path.replace(
+      /.*en-us/,
+      "",
+    )}" target="_blank">${pathToFile.get(path)!.frontMatter.title}</a>`;
+  }
   // TODO VS Code does not support hyperlinks to files (and the macOS Terminal
   // does not support OSC 8 at all!)
   // https://github.com/microsoft/vscode/issues/176812
@@ -44,19 +50,15 @@ export async function printReports(allReports: {
       let document = "<ul>";
       for (const [pathOrRuleName, reports] of Object.entries(allReports)) {
         document += `<li><details><summary>${
-          by === "file"
-            ? Path.relative(process.cwd(), pathOrRuleName)
-            : pathOrRuleName
+          by === "file" ? formatPath(pathOrRuleName) : pathOrRuleName
         } (${Object.values(reports).reduce(
           (acc, m) => acc + m.length,
           0,
-        )} reports)</summary><ul>`;
+        )})</summary><ul>`;
         for (const [ruleNameOrPath, messages] of Object.entries(reports)) {
           document += `<li><details><summary>${
-            by === "file"
-              ? ruleNameOrPath
-              : Path.relative(process.cwd(), ruleNameOrPath)
-          } (${messages.length} reports)</summary><ul>`;
+            by === "file" ? ruleNameOrPath : formatPath(ruleNameOrPath)
+          } (${messages.length})</summary><ul>`;
           for (const message of messages)
             document += `<li>${message.replaceAll("\n", "<br>")}</li>`;
           document += "</ul></details></li>";
@@ -72,6 +74,12 @@ export async function printReports(allReports: {
             <head>
               <title>MDN-checker output list</title>
               <style>
+                :root {
+                  --highlight-color: chocolate;
+                  --red: red;
+                  --green: green;
+                  --cyan: lightseagreen;
+                }
                 body {
                   font-family: Menlo, Monaco, "Courier New", monospace;
                 }
@@ -86,30 +94,23 @@ export async function printReports(allReports: {
                   list-style-type: "[–] ";
                 }
                 details:hover:not(:has(details:hover)) {
-                  color: chocolate;
+                  color: var(--highlight-color);
                 }
-                .red {
-                  color: red;
+                a {
+                  color: inherit;
                 }
-                .green {
-                  color: green;
-                }
-                .cyan {
-                  color: lightseagreen;
+                a:hover {
+                  color: var(--highlight-color);
                 }
                 @media (prefers-color-scheme: dark) {
+                  :root {
+                    --highlight-color: yellow;
+                    --red: tomato;
+                    --green: springgreen;
+                  }
                   body {
                     background-color: #202020;
                     color: #d1d1d1;
-                  }
-                  details:hover:not(:has(details:hover)) {
-                    color: yellow;
-                  }
-                  .red {
-                    color: tomato;
-                  }
-                  .green {
-                    color: springgreen;
                   }
                 }
               </style>
