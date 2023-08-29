@@ -1,7 +1,10 @@
 import FS from "node:fs/promises";
 import Path from "node:path";
 import * as Cheerio from "cheerio";
+import { slugToFilePath } from "../utils.js";
 import { contentPath, type FileContext } from "../context.js";
+
+// Remember to run yarn build files/en-us/web/javascript/**/*.md
 
 async function* getFiles(dir: string): AsyncGenerator<[string, string]> {
   const dirents = await FS.readdir(dir, { withFileTypes: true });
@@ -62,13 +65,8 @@ export default function rule(context: FileContext): void {
   for (const url of urls) {
     const referencedPath = Path.join(
       buildDir,
-      url.pathname
-        .replaceAll("*", "_star_")
-        // cSpell:ignore doublecolon
-        .replaceAll("::", "_doublecolon_")
-        .replaceAll(":", "_colon_")
-        .replaceAll("?", "_question_")
-        .toLowerCase(),
+      "en-us/docs",
+      slugToFilePath(url.pathname).replace("files/en-us", ""),
       "index.html",
     );
     const ids = pathToIds.get(referencedPath);

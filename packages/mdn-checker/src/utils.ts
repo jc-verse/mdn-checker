@@ -206,3 +206,16 @@ export class Section {
     return this.#context.getSource(this.#nodes);
   }
 }
+
+export function slugToFilePath(slug: string): string {
+  return (
+    slug
+      .toLowerCase()
+      .replaceAll("*", "_star_")
+      // cSpell:ignore doublecolon
+      .replaceAll("::", "_doublecolon_")
+      .replaceAll(":", "_colon_")
+      .replaceAll("?", "_question_")
+      .replaceAll("/en-us/docs/", "files/en-us/")
+  );
+}
