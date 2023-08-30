@@ -944,21 +944,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mdast@npm:3.0.11":
-  version: 3.0.11
-  resolution: "@types/mdast@npm:3.0.11"
+"@types/mdast@npm:3.0.12":
+  version: 3.0.12
+  resolution: "@types/mdast@npm:3.0.12"
   dependencies:
-    "@types/unist": "npm:*"
-  checksum: b48aed305f26a75189bd4dcaf9ce70d225ea6fb7ca721f968a3425ac1e7ad8771a1cf9bee7d4473c60e7e9ef36e8252d648b540b4a582c517799d091749e5661
+    "@types/unist": "npm:^2"
+  checksum: 7446c87e3c51db5e3daa7490f9d04c183e619a8f6542f5dbaa263599052adc89af17face06609d4f5c5c49aacee2bff04748bba0342cbc4106904f9cf1121a69
   languageName: node
   linkType: hard
 
-"@types/mdast@patch:@types/mdast@npm%3A3.0.11#./.yarn/patches/@types-mdast-npm-3.0.11-4765a259eb.patch::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 3.0.11
-  resolution: "@types/mdast@patch:@types/mdast@npm%3A3.0.11#./.yarn/patches/@types-mdast-npm-3.0.11-4765a259eb.patch::version=3.0.11&hash=4d4037&locator=root-workspace-0b6124%40workspace%3A."
+"@types/mdast@patch:@types/mdast@npm%3A3.0.12#~/.yarn/patches/@types-mdast-npm-3.0.12-e8f7ab24f4.patch":
+  version: 3.0.12
+  resolution: "@types/mdast@patch:@types/mdast@npm%3A3.0.12#~/.yarn/patches/@types-mdast-npm-3.0.12-e8f7ab24f4.patch::version=3.0.12&hash=43033e"
   dependencies:
-    "@types/unist": "npm:*"
-  checksum: ed617fa291ef045b2a92173e78269b3f14b98a8a4af8b4614987597df2cdcdfe517cdc6ef43a4ca1d2734b06711b82e75c79bcf5c87504c78eb8c7f23305213f
+    "@types/unist": "npm:^2"
+  checksum: 513b2a26be02786f141d96725a55f957f9a4c899f32efe2c8e1711000a3e4f8219d170bfcff907e19c0636312e0b508496420a3e5d6a02821c3eefc7d1e99014
   languageName: node
   linkType: hard
 
@@ -983,7 +983,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/unist@npm:*, @types/unist@npm:^2.0.0":
+"@types/unist@npm:^2":
+  version: 2.0.7
+  resolution: "@types/unist@npm:2.0.7"
+  checksum: b97a219554e83431f19a93ff113306bf0512909292815e8f32964e47d041c505af1aaa2a381c23e137c4c0b962fad58d4ce9c5c3256642921a466be43c1fc715
+  languageName: node
+  linkType: hard
+
+"@types/unist@npm:^2.0.0":
   version: 2.0.6
   resolution: "@types/unist@npm:2.0.6"
   checksum: 25cb860ff10dde48b54622d58b23e66214211a61c84c0f15f88d38b61aa1b53d4d46e42b557924a93178c501c166aa37e28d7f6d994aba13d24685326272d5db
@@ -3487,7 +3494,7 @@ __metadata:
     mdast-util-to-string: "npm:^3.2.0"
     remark-frontmatter: "npm:^4.0.1"
     remark-gfm: "npm:^3.0.1"
-    remark-parse: "npm:^10.0.1"
+    remark-parse: "npm:^10.0.2"
     unified: "npm:^10.1.2"
     unist-util-visit: "npm:^4.1.2"
     zod: "npm:^3.21.4"
@@ -4265,14 +4272,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remark-parse@npm:^10.0.1":
-  version: 10.0.1
-  resolution: "remark-parse@npm:10.0.1"
+"remark-parse@npm:^10.0.2":
+  version: 10.0.2
+  resolution: "remark-parse@npm:10.0.2"
   dependencies:
     "@types/mdast": "npm:^3.0.0"
     mdast-util-from-markdown: "npm:^1.0.0"
     unified: "npm:^10.0.0"
-  checksum: 7c6e21dd1594d756897ff49f835670c581c5190f2324f7bbe131672420efbdf375d5898874a8863712a13c6ea3bebf42790f4b77caf1d296183b5faa39cff400
+  checksum: 184f48956734a58a7e157d83233e532ea289697f5ecebd1fb082cce79e6d9f5b1d3da72462356b2b3b5843643cee890280ffe3d21c9d4ad2d7d5e20bb5de7f14
   languageName: node
   linkType: hard
 
@@ -4372,6 +4379,7 @@ __metadata:
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
     "@types/eslint": "npm:^8.44.2"
+    "@types/mdast": "patch:@types/mdast@npm%3A3.0.12#~/.yarn/patches/@types-mdast-npm-3.0.12-e8f7ab24f4.patch"
     "@types/node": "npm:^18.16.2"
     "@typescript-eslint/eslint-plugin": "npm:^5.59.1"
     "@typescript-eslint/parser": "npm:^5.59.1"

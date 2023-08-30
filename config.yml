@@ -6,8 +6,8 @@ rules:
   deprecation-note: true
   description: true
   heading: true
-  lint: true
+  lint: false
   see-also: true
   spec-alignment: true
   structure-consistency: true
-  syntax-section: true
+  syntax-section: false

@@ -4,13 +4,19 @@ import gfm from "remark-gfm";
 import frontMatter from "remark-frontmatter";
 import definitionList from "./dl.js";
 import callout from "./callout.js";
+import macro from "./macro.js";
 import type { Root } from "mdast";
 
-const parser = unified().use(remark).use(frontMatter).use(gfm);
-const transformer = unified().use(definitionList).use(callout);
+const pipeline = unified()
+  .use(remark)
+  .use(frontMatter)
+  .use(gfm)
+  .use(definitionList)
+  .use(callout)
+  .use(macro);
 
 export function parseMarkdown(source: string): Root {
-  const ast = parser.parse(source);
-  const transformed = transformer.runSync(ast) as Root;
+  const ast = pipeline.parse(source);
+  const transformed = pipeline.runSync(ast) as Root;
   return transformed;
 }

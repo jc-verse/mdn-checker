@@ -1,6 +1,6 @@
 import Path from "node:path";
 import { slugToFilePath } from "../utils.js";
-import type { List, ListItem } from "mdast";
+import type { List, ListItem, Macro } from "mdast";
 import type { FileContext } from "../context.js";
 
 function linkIsInternal(href: string) {
@@ -30,7 +30,7 @@ type SeeAlsoItem =
   | { type: "link-internal"; text: string; url: string }
   | { type: "link-external"; text: string; url: string; extra: string }
   | { type: "polyfill"; text: string; url: string }
-  | { type: "xref"; text: string }
+  | { type: "xref"; content: Macro }
   | { type: "invalid"; message: string };
 
 function parseSeeAlsoItem(item: ListItem, context: FileContext): SeeAlsoItem {
@@ -65,18 +65,18 @@ function parseSeeAlsoItem(item: ListItem, context: FileContext): SeeAlsoItem {
           text: context.getSource(link.children),
           url: link.url,
         };
-      case "text":
+      case "macro":
         if (
-          !/^\{\{(?:domxref|HTTPHeader|HTMLElement|Glossary|jsxref)\(.*\)\}\}$/iu.test(
-            link.value,
-          )
+          !/domxref|HTTPHeader|HTMLElement|Glossary|jsxref/iu.test(link.name)
         ) {
           return {
             type: "invalid",
-            message: `Non-link item must be an xref: ${link.value}`,
+            message: `Non-link item must be an xref: ${context.getSource(
+              link,
+            )}`,
           };
         }
-        return { type: "xref", text: link.value };
+        return { type: "xref", content: link };
       default:
         return {
           type: "invalid",
@@ -136,6 +136,7 @@ function parseSeeAlsoItem(item: ListItem, context: FileContext): SeeAlsoItem {
       extra: context.getSource([text, link2]).trim(),
     };
   } else {
+    console.log(p.children);
     return {
       type: "invalid",
       message: `'${context.getSource(
@@ -221,7 +222,11 @@ export default function rule(context: FileContext): void {
         const linkText = item.text.replaceAll("`", "");
         if (linkText !== targetTitle)
           context.report(`Link text '${linkText}' should be '${targetTitle}'`);
+        break;
       }
+      case "xref":
+        console.log(item.content);
+        break;
     }
   }
 }

@@ -25,8 +25,12 @@ async function* getFiles(
       yield* getFiles(subPath);
     } else if (dirent.name.endsWith(".md")) {
       const source = await FS.readFile(subPath, "utf-8");
-      const file = parse(source, subPath);
-      yield [subPath, file];
+      try {
+        const file = parse(source);
+        yield [subPath, file];
+      } catch (e) {
+        throw new Error(`Failed to parse ${subPath}`, { cause: e });
+      }
     }
   }
 }

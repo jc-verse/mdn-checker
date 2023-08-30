@@ -5,8 +5,8 @@ import type { FileContext } from "../context.js";
 export type File = Pick<FileContext, "source" | "ast" | "frontMatter">;
 export type { FrontMatter };
 
-export function parse(source: string, subPath: string): File {
-  const frontMatter = parseFrontMatter(source, subPath);
+export function parse(source: string): File {
+  const frontMatter = parseFrontMatter(source);
   const ast = parseMarkdown(source);
   return { source, ast, frontMatter };
 }

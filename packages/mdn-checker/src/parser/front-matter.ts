@@ -67,13 +67,10 @@ const frontMatterSchema = z.union([
 
 export type FrontMatter = z.infer<typeof frontMatterSchema>;
 
-export function parseFrontMatter(source: string, subPath: string): FrontMatter {
+export function parseFrontMatter(source: string): FrontMatter {
   const res = (fm as unknown as typeof fm.default)(source);
   const parseRes = frontMatterSchema.safeParse(res.attributes);
-  if (!parseRes.success) {
-    throw new Error(`Invalid front matter on ${subPath}`, {
-      cause: parseRes.error,
-    });
-  }
+  if (!parseRes.success)
+    throw new Error("Invalid front matter", { cause: parseRes.error });
   return parseRes.data;
 }

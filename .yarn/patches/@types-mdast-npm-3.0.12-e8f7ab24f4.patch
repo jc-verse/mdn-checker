@@ -1,0 +1,56 @@
+diff --git a/index.d.ts b/index.d.ts
+index da85eccf75c9e547bc0208da49c12386f5e00a5d..9979f0252af8e804f050807934682203a6bf8c88 100755
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -166,7 +166,7 @@ export interface RowContentMap {
+     tableCell: TableCell;
+ }
+ 
+-export type Content = TopLevelContent | ListContent | TableContent | RowContent | PhrasingContent;
++export type Content = TopLevelContent | ListContent | TableContent | RowContent | PhrasingContent | DescriptionTerm | DescriptionDetails;
+ 
+ export type TopLevelContent = BlockContent | FrontmatterContent | DefinitionContent;
+ 
+@@ -344,3 +344,42 @@ export interface Reference extends Association {
+ export interface Alternative {
+     alt?: string | null | undefined;
+ }
++
++// Extensions
++export interface DescriptionTerm extends Parent {
++    type: "dt";
++    children: ListItem["children"];
++}
++
++export interface DescriptionDetails extends Parent {
++    type: "dd";
++    children: ListItem["children"];
++}
++
++export interface DescriptionList extends Parent {
++    type: "dl";
++    children: (DescriptionTerm | DescriptionDetails)[];
++}
++
++export interface Callout extends Parent {
++    type: "callout";
++    kind: "Note" | "Warning" | "Callout";
++    children: Blockquote["children"];
++}
++
++export interface BlockContentMap {
++    callout: Callout;
++    dl: DescriptionList;
++}
++
++export type MacroArg = { value: string | number | boolean, raw: string };
++
++export interface Macro extends Node {
++    type: "macro";
++    name: string;
++    args: MacroArg[];
++}
++
++export interface StaticPhrasingContentMap {
++    macro: Macro;
++}
