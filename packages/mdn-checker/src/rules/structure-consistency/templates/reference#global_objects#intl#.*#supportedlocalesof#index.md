@@ -30,7 +30,7 @@ export const hasInteractiveExample = ["Collator", "DateTimeFormat", "NumberForma
 The **`Intl.~cls~.supportedLocalesOf()`** static method returns an array containing those of the provided locales that are supported in ~job~ without having to fall back to the runtime's default locale.
 
 ~hasInteractiveExample ? `
-{{EmbedInteractiveExample("pages/js/intl-${cls.toLowerCase()}-supportedlocalesof.html","shorter")}}
+{{EmbedInteractiveExample("pages/js/intl-${cls.toLowerCase()}-supportedlocalesof.html", "shorter")}}
 ` : ""~
 
 ## Syntax

@@ -34,14 +34,15 @@ function asDefinitionList(node: List): DescriptionList {
   const children = node.children.flatMap((listItem) => {
     const definition = listItem.children.at(-1)!;
     assert(definition.type === "list" && definition.children.length === 1);
-    const firstParagraph = definition.children[0]!.children[0];
-    assert(
-      firstParagraph?.type === "paragraph" &&
-        firstParagraph.children?.[0]?.type === "text",
-    );
-    firstParagraph.children[0].value = firstParagraph.children[0].value.slice(
+    const firstParagraph = definition.children[0]!.children[0]!;
+    assert(firstParagraph.type === "paragraph");
+    const firstParagraphText = firstParagraph.children[0]!;
+    assert(firstParagraphText.type === "text");
+    firstParagraphText.value = firstParagraphText.value.slice(
       DEFINITION_PREFIX.length,
     );
+    firstParagraphText.position!.start.offset! += DEFINITION_PREFIX.length;
+    firstParagraphText.position!.start.column += DEFINITION_PREFIX.length;
     return [
       {
         type: "dt",

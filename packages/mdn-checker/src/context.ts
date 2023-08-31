@@ -16,15 +16,17 @@ export const pathToFile = new Map<string, File>();
 
 const descriptions = new Map<string, string>();
 
+export type Report = { message: string; node: Node | undefined };
+
 export abstract class BaseContext {
   #currentName = "";
-  reports: { [ruleName: string]: string[] } = {};
+  reports: { [ruleName: string]: Report[] } = {};
   setName(name: string): void {
     this.#currentName = name;
   }
-  report(message: unknown): void {
+  report(message: unknown, node?: Node): void {
     this.reports[this.#currentName] ??= [];
-    this.reports[this.#currentName]!.push(String(message));
+    this.reports[this.#currentName]!.push({ message: String(message), node });
   }
 }
 

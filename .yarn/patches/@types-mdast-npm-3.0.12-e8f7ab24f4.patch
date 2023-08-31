@@ -11,7 +11,7 @@ index da85eccf75c9e547bc0208da49c12386f5e00a5d..9979f0252af8e804f050807934682203
  
  export type TopLevelContent = BlockContent | FrontmatterContent | DefinitionContent;
  
-@@ -344,3 +344,42 @@ export interface Reference extends Association {
+@@ -344,3 +344,41 @@ export interface Reference extends Association {
  export interface Alternative {
      alt?: string | null | undefined;
  }
@@ -43,12 +43,11 @@ index da85eccf75c9e547bc0208da49c12386f5e00a5d..9979f0252af8e804f050807934682203
 +    dl: DescriptionList;
 +}
 +
-+export type MacroArg = { value: string | number | boolean, raw: string };
-+
 +export interface Macro extends Node {
 +    type: "macro";
 +    name: string;
-+    args: MacroArg[];
++    args: (string | number | boolean)[];
++    source: string;
 +}
 +
 +export interface StaticPhrasingContentMap {

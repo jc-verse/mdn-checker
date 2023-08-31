@@ -1,13 +1,14 @@
 rules:
-  anchor-links: true
-  bad-dl: true
-  class-members: true
-  data-prop: true
-  deprecation-note: true
-  description: true
-  heading: true
+  anchor-links: false
+  bad-dl: false
+  class-members: false
+  data-prop: false
+  deprecation-note: false
+  description: false
+  heading: false
   lint: false
-  see-also: true
-  spec-alignment: true
-  structure-consistency: true
+  macro-style: true
+  see-also: false
+  spec-alignment: false
+  structure-consistency: false
   syntax-section: false

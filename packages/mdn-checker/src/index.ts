@@ -9,6 +9,7 @@ import {
   FileContext,
   ExitContext,
   type BaseContext,
+  type Report,
 } from "./context.js";
 import { by } from "./arguments.js";
 import { loadConfig } from "./config.js";
@@ -46,6 +47,7 @@ const [allRules, files, config] = await Promise.all([
     import("./rules/description.js"),
     import("./rules/heading.js"),
     import("./rules/lint.js"),
+    import("./rules/macro-style.js"),
     import("./rules/see-also.js"),
     import("./rules/spec-alignment.js"),
     import("./rules/structure-consistency/index.js"),
@@ -60,7 +62,7 @@ for (const [path, file] of files) pathToFile.set(path, file);
 const rules = allRules.filter((rule) => config.rules[rule.default.name]);
 
 const allReports: {
-  [pathOrRule: string]: { [theOther: string]: string[] };
+  [pathOrRule: string]: { [theOther: string]: Report[] };
 } = {};
 
 if (by === "rule") {

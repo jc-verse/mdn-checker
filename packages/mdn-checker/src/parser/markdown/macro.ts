@@ -2,7 +2,7 @@ import { visit } from "unist-util-visit";
 import { parseExpression } from "@babel/parser";
 import type { Plugin } from "unified";
 import type { Point } from "unist";
-import type { Literal, Root, Text, Macro, MacroArg } from "mdast";
+import type { Literal, Root, Text, Macro } from "mdast";
 
 const macroPattern = /\{\{(?<content>(?:.(?!\}\}))*.)\}\}/dgsu;
 
@@ -21,26 +21,26 @@ function parseMacro(source: string): Macro {
       return {
         type: "macro",
         name: expr.callee.name,
-        args: expr.arguments.map((arg): MacroArg => {
+        args: expr.arguments.map((arg) => {
           switch (arg.type) {
             case "StringLiteral":
-              return { value: arg.value, raw: arg.extra!.raw as string };
             case "NumericLiteral":
-              return { value: arg.value, raw: arg.extra!.raw as string };
             case "BooleanLiteral":
-              return { value: arg.value, raw: String(arg.value) };
+              return arg.value;
             default:
               throw new Error(
                 `Macro argument must be a literal: {{${source}}}`,
               );
           }
         }),
+        source,
       };
     case "Identifier":
       return {
         type: "macro",
         name: expr.name,
         args: [],
+        source,
       };
     case "BinaryExpression":
       // "non-standard_header"
@@ -54,6 +54,7 @@ function parseMacro(source: string): Macro {
         type: "macro",
         name: `${expr.left.name}-${expr.right.name}`,
         args: [],
+        source,
       };
   }
   throw new Error(
@@ -64,64 +65,73 @@ function parseMacro(source: string): Macro {
 const macro: Plugin = () => (tree) => {
   visit(tree as Root, "text", (node, index, parent) => {
     const texts: (Text | Macro)[] = [];
-    let remainingText = node.value;
-    let remainingTextStart = node.position!.start;
+    const leadingTextStart = { point: node.position!.start, index: 0 };
     for (const match of node.value.matchAll(macroPattern)) {
-      const macroContent = parseMacro(match.groups!.content!);
-      const textBefore = remainingText.slice(0, match.indices![0]![0]);
-      const textBeforeLines = textBefore.split("\n");
+      const leadingText = node.value.slice(
+        leadingTextStart.index,
+        match.indices![0]![0],
+      );
+      const leadingTextLines = leadingText.split("\n");
       const macroText = match[0]!;
       const macroTextLines = macroText.split("\n");
-      remainingText = remainingText.slice(match.indices![0]![1]);
+      // }...\n
       // ...\n
-      // ...\n
-      // ..{{macro(
+      // ..{{macro(\n
       // )}}...
       // ...
-      // => start = (line = x, column = y, offset = z)
-      // => textBeforeLines = ["...", "...", ".."]
-      // => macroStartBoundary = (line = x + 2, column = 3, offset = z + 10)
+      // => leadingTextStart.point = (line = x, column = y, offset = z)
+      // => leadingTextLines = ["...", "...", ".."]
+      // => macroStartPoint = (line = x + 2, column = 3, offset = z + 10)
       // => macroTextLines = ["{{macro(", ")}}"]
-      // => macroEndBoundary = (line = x + 3, column = 4, offset = z + 10 + 12)
-      const macroStartBoundary = {
-        line: remainingTextStart.line + textBeforeLines.length - 1,
+      // => macroEndPoint = (line = x + 3, column = 4, offset = z + 10 + 12)
+      const macroStartPoint = {
+        line: leadingTextStart.point.line + leadingTextLines.length - 1,
         column:
-          textBeforeLines.length > 1
-            ? textBeforeLines.at(-1)!.length + 1
-            : remainingTextStart.column + textBefore.length,
-        offset: remainingTextStart.offset! + textBefore.length,
+          leadingTextLines.length > 1
+            ? leadingTextLines.at(-1)!.length + 1
+            : leadingTextStart.point.column + leadingText.length,
+        offset: leadingTextStart.point.offset! + leadingText.length,
       } satisfies Point;
-      const macroEndBoundary = {
-        line: macroStartBoundary.line + macroTextLines.length - 1,
+      const macroEndPoint = {
+        line: macroStartPoint.line + macroTextLines.length - 1,
         column:
           macroTextLines.length > 1
             ? macroTextLines.at(-1)!.length + 1
-            : macroStartBoundary.column + macroText.length,
-        offset: macroStartBoundary.offset + macroText.length,
+            : macroStartPoint.column + macroText.length,
+        offset: macroStartPoint.offset + macroText.length,
       } satisfies Point;
-      remainingTextStart = macroEndBoundary;
-      if (textBefore) {
+      if (leadingText) {
         texts.push({
           type: "text",
-          value: textBefore,
+          value: leadingText,
           position: {
-            start: remainingTextStart,
-            end: macroStartBoundary,
+            start: leadingTextStart.point,
+            end: macroStartPoint,
           },
         });
       }
-      macroContent.position = {
-        start: macroStartBoundary,
-        end: macroEndBoundary,
+      texts.push({
+        ...parseMacro(match.groups!.content!),
+        position: {
+          start: macroStartPoint,
+          end: macroEndPoint,
+        },
+      });
+      leadingTextStart.index = match.indices![0]![1] + 1;
+      leadingTextStart.point = {
+        // TODO: I'm not sure if these two need to be shifted, but they are
+        // currently not used
+        line: macroEndPoint.line,
+        column: macroEndPoint.column,
+        offset: macroEndPoint.offset + 1,
       };
-      texts.push(macroContent);
     }
-    if (remainingText) {
+    if (leadingTextStart.index < node.value.length) {
       texts.push({
         type: "text",
-        value: remainingText,
+        value: node.value.slice(leadingTextStart.index),
         position: {
-          start: remainingTextStart,
+          start: leadingTextStart.point,
           end: node.position!.end,
         },
       });

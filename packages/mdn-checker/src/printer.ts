@@ -1,6 +1,6 @@
 import FS from "node:fs/promises";
 import Path from "node:path";
-import { pathToFile } from "./context.js";
+import { pathToFile, type Report } from "./context.js";
 import { output, by } from "./arguments.js";
 
 const html = (strings: TemplateStringsArray, ...values: unknown[]) =>
@@ -23,7 +23,7 @@ function formatPath(path: string) {
 }
 
 export async function printReports(allReports: {
-  [pathOrRule: string]: { [theOther: string]: string[] };
+  [pathOrRule: string]: { [theOther: string]: Report[] };
 }): Promise<void> {
   let print = console.log;
   switch (output) {
@@ -31,36 +31,36 @@ export async function printReports(allReports: {
       print = console.error;
     // Fallthrough
     case "stdout":
-      for (const [pathOrRuleName, reports] of Object.entries(allReports)) {
+      for (const [pathOrRuleName, reportsRec] of Object.entries(allReports)) {
         print(
           by === "file" ? formatPath(pathOrRuleName) : `[${pathOrRuleName}]`,
         );
-        for (const [ruleNameOrPath, messages] of Object.entries(reports)) {
+        for (const [ruleNameOrPath, reports] of Object.entries(reportsRec)) {
           print(
             by === "file"
               ? `  [${ruleNameOrPath}]`
               : `  ${formatPath(ruleNameOrPath)}`,
           );
-          for (const message of messages)
-            print(`    ${message.split("\n").join("\n    ")}`);
+          for (const report of reports)
+            print(`    ${report.message.split("\n").join("\n    ")}`);
         }
       }
       break;
     case "html": {
       let document = "<ul>";
-      for (const [pathOrRuleName, reports] of Object.entries(allReports)) {
+      for (const [pathOrRuleName, reportsRec] of Object.entries(allReports)) {
         document += `<li><details><summary>${
           by === "file" ? formatPath(pathOrRuleName) : pathOrRuleName
-        } (${Object.values(reports).reduce(
-          (acc, m) => acc + m.length,
+        } (${Object.values(reportsRec).reduce(
+          (acc, r) => acc + r.length,
           0,
         )})</summary><ul>`;
-        for (const [ruleNameOrPath, messages] of Object.entries(reports)) {
+        for (const [ruleNameOrPath, reports] of Object.entries(reportsRec)) {
           document += `<li><details><summary>${
             by === "file" ? ruleNameOrPath : formatPath(ruleNameOrPath)
-          } (${messages.length})</summary><ul>`;
-          for (const message of messages)
-            document += `<li>${message.replaceAll("\n", "<br>")}</li>`;
+          } (${reports.length})</summary><ul>`;
+          for (const report of reports)
+            document += `<li>${report.message.replaceAll("\n", "<br>")}</li>`;
           document += "</ul></details></li>";
         }
         document += "</ul></details></li>";
