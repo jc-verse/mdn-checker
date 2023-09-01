@@ -27,7 +27,7 @@ const wellKnownSites = [
 ];
 
 type SeeAlsoItem =
-  | { type: "link-internal"; text: string; url: string }
+  | { type: "link-internal"; text: string; url: string; extra?: string }
   | { type: "link-external"; text: string; url: string; extra: string }
   | { type: "polyfill"; text: string; url: string }
   | { type: "xref"; content: Macro }
@@ -92,16 +92,8 @@ function parseSeeAlsoItem(item: ListItem, context: FileContext): SeeAlsoItem {
   ) {
     const link = p.children[0]!;
     const text = p.children[1]!;
-    if (linkIsInternal(link.url)) {
-      return {
-        type: "invalid",
-        message: `Internal link '${context.getSource(
-          link,
-        )}' cannot have extra text`,
-      };
-    }
     return {
-      type: "link-external",
+      type: linkIsInternal(link.url) ? "link-internal" : "link-external",
       text: context.getSource(link.children),
       url: link.url,
       extra: context.getSource(text).trim(),
@@ -115,15 +107,7 @@ function parseSeeAlsoItem(item: ListItem, context: FileContext): SeeAlsoItem {
     const link1 = p.children[0]!;
     const text = p.children[1]!;
     const link2 = p.children[2]!;
-    if (linkIsInternal(link1.url)) {
-      return {
-        type: "invalid",
-        message: `Internal link '${context.getSource(
-          link1,
-        )}' cannot have extra text`,
-      };
-    }
-    if (text.value !== " by ") {
+    if (linkIsInternal(link1.url) || text.value !== " by ") {
       return {
         type: "invalid",
         message: `Expected item to be in the format '[link]() by [author]()'`,
@@ -136,7 +120,6 @@ function parseSeeAlsoItem(item: ListItem, context: FileContext): SeeAlsoItem {
       extra: context.getSource([text, link2]).trim(),
     };
   } else {
-    console.log(p.children);
     return {
       type: "invalid",
       message: `'${context.getSource(
@@ -208,24 +191,20 @@ export default function rule(context: FileContext): void {
           context.report(`Could not find target file '${item.url}'`);
           break;
         }
-        let targetTitle = targetFile.frontMatter.title
-          .replace(/ constructor$/u, "")
-          .replace(/(?<=^[a-z]+) operator$/u, "");
-        if (/Guide\/(?:Functions|Regular_expressions)$/u.test(item.url))
-          targetTitle += " guide";
-        else if (
-          /Reference\/(?:Functions|Regular_expressions)$/u.test(item.url)
-        )
-          targetTitle += " reference";
-        else if (item.url.endsWith("Template_literals"))
+        let targetTitle = targetFile.frontMatter.title;
+        if (item.url.endsWith("Template_literals"))
           targetTitle = "Template literals";
+        if (item.url.includes("Guide") && item.extra !== "guide") {
+          context.report(
+            `Expected item ${item.text} to have extra 'guide' suffix`,
+          );
+        }
         const linkText = item.text.replaceAll("`", "");
         if (linkText !== targetTitle)
           context.report(`Link text '${linkText}' should be '${targetTitle}'`);
         break;
       }
       case "xref":
-        console.log(item.content);
         break;
     }
   }
