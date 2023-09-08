@@ -75,7 +75,7 @@ dataview.~topic.replace("set", "get")~(~BYTES_PER_ELEMENT === 1 ? 0 : 1~); // ~t
 
 ## See also
 
-- [JavaScript typed arrays](/en-US/docs/Web/JavaScript/Guide/Typed_arrays)
+- [JavaScript typed arrays](/en-US/docs/Web/JavaScript/Guide/Typed_arrays) guide
 - {{jsxref("DataView")}}
 - {{jsxref("ArrayBuffer")}}
 - {{jsxref("~topic.replace("set", "")~Array")}}

@@ -11,9 +11,18 @@ function parseMacro(source: string): Macro {
     try {
       return parseExpression(source);
     } catch (e) {
-      throw new Error(`Failed to parse macro: {{${source}}}`, { cause: e });
+      console.warn(`Failed to parse macro: {{${source}}}`);
+      return undefined;
     }
   })();
+  if (!expr) {
+    return {
+      type: "macro",
+      name: "Broken",
+      args: [],
+      source,
+    };
+  }
   switch (expr.type) {
     case "CallExpression":
       if (expr.callee.type !== "Identifier")
@@ -144,7 +153,7 @@ const macro: Plugin = () => (tree) => {
     visit(tree, nodeType, (node: Literal) => {
       const match = macroPattern.exec(node.value);
       if (match) {
-        throw new Error(
+        console.warn(
           `Line ${node.position!.start.line}: macro ${
             match[0]
           } found in code block`,

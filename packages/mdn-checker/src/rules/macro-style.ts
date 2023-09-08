@@ -2,7 +2,9 @@ import { visit } from "unist-util-visit";
 import * as Prettier from "prettier";
 import { diffLines } from "diff";
 import { color } from "../utils.js";
-import type { FileContext } from "../context.js";
+import type { FileContext, ExitContext } from "../context.js";
+
+const macroCount = new Map<string, number>();
 
 export default async function rule(context: FileContext): Promise<void> {
   const checks: Promise<[string, string] | undefined>[] = [];
@@ -22,6 +24,8 @@ export default async function rule(context: FileContext): Promise<void> {
           : [node.source, formatted.trim()],
       ),
     );
+    if (!macroCount.has(node.name)) macroCount.set(node.name, 0);
+    macroCount.set(node.name, macroCount.get(node.name)! + 1);
   });
   await Promise.all(checks).then((res) =>
     (res.filter(Boolean) as [string, string][]).forEach(
@@ -40,6 +44,15 @@ export default async function rule(context: FileContext): Promise<void> {
     ),
   );
 }
+
+rule.onExit = (context: ExitContext) => {
+  context.report(
+    `Macro count:
+${[...macroCount.entries().map(([name, count]) => `- ${name}: ${count}`)]
+  .sort(new Intl.Collator("en-US", { sensitivity: "base" }).compare)
+  .join("\n")}`,
+  );
+};
 
 Object.defineProperty(rule, "name", { value: "macro-style" });
 
