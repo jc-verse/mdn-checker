@@ -3,6 +3,13 @@ import Path from "node:path";
 import { pathToFile, type Report } from "./context.js";
 import { output, by } from "./arguments.js";
 
+const escapeHTML = (str: string) =>
+  str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    // There's never <span> in text
+    .replaceAll(/&lt;(?=\/?span)/g, "<");
+
 const html = (strings: TemplateStringsArray, ...values: unknown[]) =>
   String.raw({ raw: strings }, ...values);
 
@@ -12,7 +19,9 @@ function formatPath(path: string) {
     return `<a href="https://github.com/mdn/content/tree/main/files/en-us${path.replace(
       /.*en-us/,
       "",
-    )}" target="_blank">${pathToFile.get(path)!.frontMatter.title}</a>`;
+    )}" target="_blank">${escapeHTML(
+      pathToFile.get(path)!.frontMatter.title,
+    )}</a>`;
   }
   // TODO VS Code does not support hyperlinks to files (and the macOS Terminal
   // does not support OSC 8 at all!)
@@ -59,8 +68,12 @@ export async function printReports(allReports: {
           document += `<li><details><summary>${
             by === "file" ? ruleNameOrPath : formatPath(ruleNameOrPath)
           } (${reports.length})</summary><ul>`;
-          for (const report of reports)
-            document += `<li>${report.message.replaceAll("\n", "<br>")}</li>`;
+          for (const report of reports) {
+            document += `<li>${escapeHTML(report.message).replaceAll(
+              "\n",
+              "<br>",
+            )}</li>`;
+          }
           document += "</ul></details></li>";
         }
         document += "</ul></details></li>";
