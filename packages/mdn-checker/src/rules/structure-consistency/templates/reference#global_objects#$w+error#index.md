@@ -22,7 +22,7 @@ export const nonStandardNote =
     ? [
         "\nstatus:\n  - non-standard",
         "{{Non-standard_Header}}",
-        " {{Non-standard_Inline}}",
+        " {{non-standard_inline}}",
       ]
     : ["", "", ""];
 export const polyfillLink =

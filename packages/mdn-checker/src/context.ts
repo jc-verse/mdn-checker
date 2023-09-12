@@ -12,7 +12,7 @@ export const javascriptPath = Path.join(
   "files/en-us/web/javascript",
 );
 // This map is populated by index.js
-export const pathToFile = new Map<string, File>();
+export const pathToFile = new Map<string, FileContext>();
 
 const descriptions = new Map<string, string>();
 
@@ -30,7 +30,7 @@ export abstract class BaseContext {
   }
 }
 
-export class FileContext extends BaseContext {
+export class FileContext extends BaseContext implements File {
   path;
   source!: string;
   ast!: Root;
@@ -49,16 +49,16 @@ export class FileContext extends BaseContext {
       end.position!.end.offset,
     );
   }
-  getSubpages(path?: string, options?: { withPath?: false }): File[];
+  getSubpages(path?: string, options?: { withPath?: false }): FileContext[];
   getSubpages(
     path: string | undefined,
     options: { withPath: true },
-  ): [string, File][];
+  ): [string, FileContext][];
   getSubpages(
     path?: string,
     { withPath = false }: { withPath?: boolean } = {},
-  ): ([string, File] | File)[] {
-    const subpages: ([string, File] | File)[] = [];
+  ): ([string, FileContext] | FileContext)[] {
+    const subpages: ([string, FileContext] | FileContext)[] = [];
     const basePath = Path.dirname(path ?? this.path);
     for (const [p, file] of pathToFile) {
       if (Path.dirname(Path.dirname(p)) === basePath)
@@ -66,7 +66,7 @@ export class FileContext extends BaseContext {
     }
     return subpages;
   }
-  getFile(path: string): File | undefined {
+  getFile(path: string): FileContext | undefined {
     return pathToFile.get(Path.resolve(javascriptPath, path, "index.md"));
   }
   getDescription(

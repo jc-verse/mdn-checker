@@ -65,11 +65,12 @@ export const exampleArg = {
   link: '"https://developer.mozilla.org/"',
 }[topic] ?? "";
 export const paramDesc = param ? context.getSource(context.tree.getSubsection("Syntax").getSubsection("Parameters").ast[0].children[1].children[0]) : "";
+export const contentString = topic === "link" ? "MDN Web Docs" : "Hello, world";
 
 export const replacement = [`> **Warning:** This markup is invalid, because ${invalid}.\n\n`, `Instead of using \`${topic}()\` and creating HTML text directly, you should use `, `DOM APIs such as [\`document.createElement()\`](/en-US/docs/Web/API/Document/createElement). For example:
 
 \`\`\`js
-const contentString = "Hello, world";
+const contentString = "${contentString}";
 const elem = document.createElement("${tagName === "strike" ? "s" : tagName}");${topic === "link" ? `\nelem.href = "https://developer.mozilla.org/";` : ""}
 elem.innerText = contentString;
 document.body.appendChild(elem);
@@ -98,7 +99,7 @@ document.getElementById("yourElemId").style.${cssProp.replace(/-([a-z])/, (m, p1
 }
 ```
 
-{{JSRef}} {{deprecated_header}}
+{{JSRef}} {{Deprecated_Header}}
 
 The **`~topic~()`** method of {{jsxref("String")}} values creates a string that embeds this string in ~article~ ~tagName === "blink" ? "`<blink>`" : `{{HTMLElement("${tagName}")}}`~ element~topic === "anchor" ? " with a name" : ""~ (`<~tagName~~attr ? ` ${attr}="..."` : ""~>str</~tagName~>`)~effect~.
 
@@ -128,7 +129,7 @@ A string beginning with ~article~ `<~tagName~~attr ? ` ${attr}="${attr === "href
 The code below creates an HTML string and then replaces the document's body with it:
 
 ```js
-const contentString = "Hello, world";
+const contentString = "~contentString~";
 
 document.body.innerHTML = contentString.~topic~(~exampleArg~);
 ```
@@ -136,7 +137,7 @@ document.body.innerHTML = contentString.~topic~(~exampleArg~);
 This will create the following HTML:
 
 ```html
-<~tagName~~attr ? ` ${attr}=${exampleArg.startsWith('"') ? exampleArg : `"${exampleArg}"`}` : ""~>Hello, world</~tagName~>
+<~tagName~~attr ? ` ${attr}=${exampleArg.startsWith('"') ? exampleArg : `"${exampleArg}"`}` : ""~>~contentString~</~tagName~>
 ```
 
 ~replacement.join("")~

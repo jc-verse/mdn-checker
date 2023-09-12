@@ -33,7 +33,8 @@ export default async function rule(context: FileContext): Promise<void> {
   const content = template.replace(setupBlock[0], "");
   const setup = setupBlock.groups!.content!;
   const exports = {};
-  const vmContext = VM.createContext({ context, exports });
+  const skip = Symbol("skip");
+  const vmContext = VM.createContext({ context, exports, skip, console });
   const entry = new VM.SourceTextModule(
     `
   import * as Setup from "setup";
@@ -52,7 +53,12 @@ export default async function rule(context: FileContext): Promise<void> {
       { context: vmContext },
     );
   });
-  await entry.evaluate();
+  try {
+    await entry.evaluate();
+  } catch (e) {
+    if (e === skip) return;
+    throw e;
+  }
   const compiledContent = interpolate(content, exports).replace(
     /\n{3,}/g,
     "\n\n",

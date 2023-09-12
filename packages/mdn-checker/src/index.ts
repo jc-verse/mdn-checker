@@ -13,12 +13,12 @@ import {
 } from "./context.js";
 import { by } from "./arguments.js";
 import { loadConfig } from "./config.js";
-import { parse, type File } from "./parser/index.js";
+import { parse } from "./parser/index.js";
 import { printReports } from "./printer.js";
 
 async function* getFiles(
   dir: string,
-): AsyncGenerator<[string, File], void, never> {
+): AsyncGenerator<[string, FileContext], void, never> {
   const dirents = await FS.readdir(dir, { withFileTypes: true });
   for (const dirent of dirents) {
     const subPath = Path.resolve(dir, dirent.name);
@@ -27,7 +27,7 @@ async function* getFiles(
     } else if (dirent.name.endsWith(".md")) {
       const source = await FS.readFile(subPath, "utf-8");
       try {
-        const file = parse(source);
+        const file = new FileContext(subPath, parse(source));
         yield [subPath, file];
       } catch (e) {
         throw new Error(`Failed to parse ${subPath}`, { cause: e });
@@ -88,8 +88,7 @@ function registerReports(path: string, reports: BaseContext["reports"]) {
 }
 
 await Promise.all(
-  pathToFile.entries().map(async ([path, file]) => {
-    const context = new FileContext(path, file);
+  pathToFile.entries().map(async ([path, context]) => {
     // TODO this cannot be parallel because we change the context
     // Maybe we need https://github.com/tc39/proposal-async-context
     for (const { default: rule } of rules) {
