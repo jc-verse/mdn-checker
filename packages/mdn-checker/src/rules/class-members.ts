@@ -176,9 +176,9 @@ export default function rule(context: FileContext): void {
           .map(
             (s) =>
               ({
-                experimental: "{{Experimental_Inline}}",
-                deprecated: "{{Deprecated_Inline}}",
-                "non-standard": "{{Non-standard_Inline}}",
+                experimental: "{{experimental_inline}}",
+                deprecated: "{{deprecated_inline}}",
+                "non-standard": "{{non-standard_inline}}",
               }[s]),
           )
           .join(" ")}`;

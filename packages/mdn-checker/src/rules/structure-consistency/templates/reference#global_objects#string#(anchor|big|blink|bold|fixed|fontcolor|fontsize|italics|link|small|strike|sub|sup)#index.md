@@ -43,7 +43,7 @@ if (topic === "anchor") {
     "\n>\n> The HTML specification no longer allows the {{HTMLElement(\"a\")}} element to have a `name` attribute, so this method doesn't even create valid markup.";
   invalid = '`name` is no longer a valid attribute of the {{HTMLElement("a")}} element';
 } else if (["big", "fixed", "fontcolor", "fontsize", "strike"].includes(topic)) {
-  migrationTip = `For the case of \`${topic}()\`, the \`<${tagName}>\` element itself has been removed in [HTML5](/en-US/docs/Glossary/HTML5) and shouldn't be used anymore. Web developers should use ${topic === "strike" ? 'the {{HTMLElement("del")}} or {{HTMLElement("s")}} elements' : "[CSS](/en-US/docs/Web/CSS) properties"} instead.`;
+  migrationTip = `For the case of \`${topic}()\`, the \`<${tagName}>\` element itself has been removed from the HTML specification and shouldn't be used anymore. Web developers should use ${topic === "strike" ? 'the {{HTMLElement("del")}} for deleted content or the {{HTMLElement("s")}} for content that is no longer accurate or no longer relevant' : "[CSS](/en-US/docs/Web/CSS) properties"} instead.`;
   invalid = `\`${tagName}\` is no longer a valid element`;
 } else if (topic === "blink") {
   migrationTip = "For the case of `blink()`, the `<blink>` element itself is removed from modern browsers, and blinking text is frowned upon by several accessibility standards. Avoid using the element in any way.";

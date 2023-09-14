@@ -20,5 +20,6 @@ subpages
 treeify
 unist
 unprefixed
+yari
 yarnpkg
 zloirock

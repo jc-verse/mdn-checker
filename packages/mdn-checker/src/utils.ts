@@ -208,7 +208,7 @@ export class Section {
 }
 
 export function slugToFilePath(slug: string): string {
-  return (
+  return decodeURIComponent(
     slug
       .toLowerCase()
       .replaceAll("*", "_star_")
@@ -216,6 +216,6 @@ export function slugToFilePath(slug: string): string {
       .replaceAll("::", "_doublecolon_")
       .replaceAll(":", "_colon_")
       .replaceAll("?", "_question_")
-      .replaceAll("/en-us/docs/", "files/en-us/")
+      .replaceAll("/en-us/docs/", "files/en-us/"),
   );
 }
