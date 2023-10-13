@@ -27,31 +27,17 @@ function getArguments(frontMatter: FrontMatter): string[] {
       return [frontMatter.title];
     }
     case "javascript-instance-accessor-property":
-    case "javascript-static-accessor-property": {
-      if (/ \(\$.\)$/u.test(frontMatter.title)) {
-        return [
-          last(frontMatter.slug, 2).replaceAll("/", "."),
-          frontMatter.title,
-        ];
-      }
-      if (/…/u.test(frontMatter.title))
-        return [last(frontMatter.slug, 2), frontMatter.title];
-    }
-    // Fallthrough
-    case "javascript-static-data-property": {
-      if (frontMatter.title.startsWith("Intl."))
-        return [last(frontMatter.slug, 3), frontMatter.title];
-      if (frontMatter.title.includes("@@"))
-        return [last(frontMatter.slug, 2), frontMatter.title];
-      return [frontMatter.title];
-    }
+    case "javascript-static-accessor-property":
+    case "javascript-static-data-property":
     case "javascript-instance-data-property": {
-      if (frontMatter.title.startsWith("Intl."))
-        return [last(frontMatter.slug, 3), frontMatter.title];
-
-      if (frontMatter.title.includes("@@"))
+      // Legacy RegExp properties and well-known symbols
+      if (/ \(\$.\)$|…|@@/u.test(frontMatter.title))
         return [last(frontMatter.slug, 2), frontMatter.title];
-
+      if (
+        frontMatter.title.startsWith("Intl.") &&
+        frontMatter.slug.split("/").at(-2) !== "Intl"
+      )
+        return [last(frontMatter.slug, 3), frontMatter.title];
       if (frontMatter.title.includes(": ")) {
         return [
           last(frontMatter.slug, 2),

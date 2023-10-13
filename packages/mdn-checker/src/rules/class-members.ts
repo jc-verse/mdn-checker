@@ -188,7 +188,7 @@ export default function rule(context: FileContext): void {
           ["Function: displayName"].includes(m.frontMatter.title)) ||
         (typeof m === "string" && m.includes("WeakRef.prototype.constructor"))
       )
-        ref = `${ref} {{Optional_Inline}}`;
+        ref = `${ref} {{optional_inline}}`;
       return ref;
     });
     const edits = editingSteps(actualTexts, expectedTexts);
