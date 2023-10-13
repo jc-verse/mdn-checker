@@ -36,11 +36,7 @@ x ~operator~ y
 
 ## Description
 
-~upperCaseName~ [_short-circuits_](/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence#short-circuiting), meaning that `x ~operator~ y` is equivalent to:
-
-```js
-x ~operator.replace("=", "")~ (x = y);
-```
+~upperCaseName~ [_short-circuits_](/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence#short-circuiting), meaning that `x ~operator~ y` is equivalent to `x ~operator.replace("=", "")~ (x = y)`, except that the expression `x` is only evaluated once.
 
 No assignment is performed if the left-hand side is not ~condition~, due to short-circuiting of the [~counterpart~](/en-US/docs/Web/JavaScript/Reference/Operators/~upperCaseCounterpart.replaceAll(" ", "_")~) operator. For example, the following does not throw an error, despite `x` being `const`:
 

@@ -34,7 +34,7 @@ x ~operator~ y
 
 ## Description
 
-`x ~operator~ y` is equivalent to `x = x ~operator.replace("=", "")~ y`.
+`x ~operator~ y` is equivalent to `x = x ~operator.replace("=", "")~ y`, except that the expression `x` is only evaluated once.
 
 ## Examples
 

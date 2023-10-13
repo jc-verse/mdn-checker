@@ -35,12 +35,4 @@ export default {
     '{"name":"RegExp.$1, …, RegExp.$9","type":"javascript-static-accessor-property"}',
     '{"name":"RegExp.rightContext ($\')","type":"javascript-static-accessor-property"}',
   ],
-  resizablearraybuffer: [
-    '{"name":"ArrayBuffer.prototype.maxByteLength","type":"javascript-instance-accessor-property"}',
-    '{"name":"ArrayBuffer.prototype.resizable","type":"javascript-instance-accessor-property"}',
-    '{"name":"ArrayBuffer.prototype.resize()","type":"javascript-instance-method"}',
-    '{"name":"SharedArrayBuffer.prototype.grow()","type":"javascript-instance-method"}',
-    '{"name":"SharedArrayBuffer.prototype.growable","type":"javascript-instance-accessor-property"}',
-    '{"name":"SharedArrayBuffer.prototype.maxByteLength","type":"javascript-instance-accessor-property"}',
-  ],
 } as Record<string, string[]>;
