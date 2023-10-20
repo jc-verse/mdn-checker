@@ -23,8 +23,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json && yarn es:sync && yarn es:scrape",
     "watch": "tsc -p tsconfig.build.json --watch",
-    "es:sync": "ts-node ./scripts/sync.ts",
-    "es:scrape": "ts-node ./scripts/scrape.ts"
+    "es:sync": "node --loader=ts-node/esm --no-warnings=ExperimentalWarning ./scripts/sync.ts",
+    "es:scrape": "node --loader=ts-node/esm --no-warnings=ExperimentalWarning ./scripts/scrape.ts"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12"
