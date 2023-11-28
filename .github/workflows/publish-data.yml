@@ -7,9 +7,15 @@ on:
       - master
     paths:
       - "packages/es-scraper/**"
+  workflow_dispatch: {}
+
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
+    environment: Publish
+    defaults:
+      run:
+        working-directory: ./packages/es-scraper
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
@@ -21,7 +27,7 @@ jobs:
       - run: yarn build
       - name: Publish to npm
         run: |
-          cd packages/es-scraper
+          npm whoami
           yarn version patch
           npm publish
         env:

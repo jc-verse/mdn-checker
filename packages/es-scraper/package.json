@@ -31,5 +31,10 @@
   },
   "devDependencies": {
     "ts-node": "^10.9.1"
-  }
+  },
+  "files": [
+    "./**/*",
+    "!generated/spec.html",
+    "!generated/*.bak.json"
+  ]
 }
