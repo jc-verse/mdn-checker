@@ -12,6 +12,7 @@ ints
 jsxref
 mdast
 nolint
+noreply
 resizablearraybuffer
 shadowrealm
 specced
