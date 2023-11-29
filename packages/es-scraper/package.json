@@ -18,8 +18,12 @@
   },
   "homepage": "https://jc-verse.github.io/mdn-checker/",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+    }
   },
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.build.json && yarn es:sync && yarn es:scrape",
     "watch": "tsc -p tsconfig.build.json --watch",
