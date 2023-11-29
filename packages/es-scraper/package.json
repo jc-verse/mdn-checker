@@ -20,6 +20,7 @@
   "exports": {
     ".": "./dist/index.js"
   },
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.build.json && yarn es:sync && yarn es:scrape",
     "watch": "tsc -p tsconfig.build.json --watch",
