@@ -1,7 +1,7 @@
 {
   "name": "es-scraper",
   "description": "Scrape structured data from the ES spec",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "author": "Joshua Chen <sidachen2003@gmail.com>",
   "license": "MIT",
   "type": "module",
