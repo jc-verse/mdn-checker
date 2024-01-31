@@ -25,7 +25,23 @@ jobs:
           cache: yarn
       - run: yarn install
       - run: yarn build
+      - name: Test if published data changed
+        uses: actions/github-script@v7
+        id: check-change
+        with:
+          result-encoding: string
+          script: |
+            const FS = require("node:fs/promises");
+
+            const existingEarlyErrors = await fetch("https://unpkg.com/es-scraper/generated/early-errors.json").then((res) => res.text());
+            const existingIntrinsics = await fetch("https://unpkg.com/es-scraper/generated/intrinsics.json").then((res) => res.text());
+            const newEarlyErrors = await FS.readFile("${{ github.workspace }}/packages/es-scraper/generated/early-errors.json", "utf-8");
+            const newIntrinsics = await FS.readFile("${{ github.workspace }}/packages/es-scraper/generated/intrinsics.json", "utf-8");
+            if (existingEarlyErrors === newEarlyErrors && existingIntrinsics === newIntrinsics) {
+              return "no-change";
+            }
       - name: Publish to npm
+        if: steps.check-change.conclusion != 'no-change'
         run: |
           npm whoami
           yarn version patch
@@ -33,6 +49,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Push new version
+        if: steps.check-change.conclusion != 'no-change'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
