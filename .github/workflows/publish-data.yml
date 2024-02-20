@@ -37,6 +37,11 @@ jobs:
             const existingIntrinsics = await fetch("https://unpkg.com/es-scraper/generated/intrinsics.json").then((res) => res.text());
             const newEarlyErrors = await FS.readFile("${{ github.workspace }}/packages/es-scraper/generated/early-errors.json", "utf-8");
             const newIntrinsics = await FS.readFile("${{ github.workspace }}/packages/es-scraper/generated/intrinsics.json", "utf-8");
+
+            console.log(existingEarlyErrors);
+            console.log(newEarlyErrors);
+            console.log(existingIntrinsics);
+            console.log(newIntrinsics);
             if (existingEarlyErrors === newEarlyErrors && existingIntrinsics === newIntrinsics) {
               return "no-change";
             }
